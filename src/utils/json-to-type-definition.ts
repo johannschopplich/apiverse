@@ -16,22 +16,29 @@ export async function jsonToTypeDefinition(
   data: JsonValue,
   options: TypeDefinitionOptions = {},
 ): Promise<string> {
-  const { compile } = await import('json-schema-to-typescript-lite')
-    .catch(() => {
-      throw new Error('Missing dependency "json-schema-to-typescript-lite", please install it')
-    })
+  let compile: typeof import('json-schema-to-typescript-lite').compile
+  try {
+    ({ compile } = await import('json-schema-to-typescript-lite'))
+  }
+  catch (error) {
+    if (
+      error instanceof Error && 'code' in error
+      && (error.code === 'ERR_MODULE_NOT_FOUND' || error.code === 'MODULE_NOT_FOUND')
+    ) {
+      throw new Error('Missing dependency "json-schema-to-typescript-lite", please install it', { cause: error })
+    }
+
+    throw error
+  }
 
   const resolvedOptions = resolveOptions(options)
   const schema = createJsonSchema(data, resolvedOptions)
   const output = await compile(schema, resolvedOptions.typeName)
 
-  return `
-${CODE_HEADER_DIRECTIVES}
-${output}
-`.trimStart()
+  return `${CODE_HEADER_DIRECTIVES}\n${output}\n`
 }
 
-function createJsonSchema(data: unknown, options: ResolvedTypeDefinitionOptions): JSONSchema4 {
+function createJsonSchema(data: JsonValue, options: ResolvedTypeDefinitionOptions): JSONSchema4 {
   if (data === null) {
     return { type: 'null' }
   }
@@ -74,98 +81,65 @@ function createJsonSchema(data: unknown, options: ResolvedTypeDefinitionOptions)
     }
   }
 
-  const primitiveType = typeof data
-
-  if (primitiveType === 'string' || primitiveType === 'number' || primitiveType === 'boolean') {
-    return { type: primitiveType }
+  if (typeof data === 'number') {
+    return { type: 'number' }
   }
 
-  // Fallback for unsupported types
-  return {}
-}
-
-function mergeSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinitionOptions): JSONSchema4 {
-  if (schemas.length === 0)
-    return {}
-
-  if (schemas.length === 1)
-    return schemas[0]!
-
-  // Filter out empty schemas (representing unknown/any types from unsupported values)
-  const definedSchemas = schemas.filter(schema => schema.type !== undefined || Object.keys(schema).length > 0)
-  const hasEmptySchemas = schemas.length > definedSchemas.length
-
-  if (definedSchemas.length === 0) {
-    return {}
+  if (typeof data === 'boolean') {
+    return { type: 'boolean' }
   }
 
-  if (definedSchemas.length === 1 && !hasEmptySchemas) {
-    return definedSchemas[0]!
+  if (typeof data !== 'string') {
+    throw new TypeError(`Cannot convert value of type "${typeof data}" to a type definition`)
   }
 
-  const types = new Set(definedSchemas.map(schema => schema.type).filter(Boolean))
-
-  // Create a union for mixed types or if there are empty schemas (unknown types)
-  if (types.size !== 1 || hasEmptySchemas) {
-    return createUnionSchema(definedSchemas, hasEmptySchemas)
-  }
-
-  const type = definedSchemas[0]!.type
-
-  if (type === 'object') {
-    return mergeObjectSchemas(definedSchemas, options)
-  }
-
-  if (type === 'array') {
-    return mergeArraySchemas(definedSchemas, options)
-  }
-
-  return definedSchemas[0]!
+  return { type: 'string' }
 }
 
 /**
- * Deduplicates schemas by type and creates an anyOf union.
+ * Merges sibling schemas by kind: object schemas merge into a single shape,
+ * array schemas merge their items, and primitives are deduplicated by type.
+ * Mixed kinds combine into an `anyOf` union.
  *
  * @remarks
- * Primitives are deduplicated by type, objects/arrays are kept separate.
+ * Object and array merging is invariant to sibling kinds, so a primitive
+ * alongside several objects does not stop those objects from merging.
  */
-function createUnionSchema(schemas: JSONSchema4[], hasEmptySchemas: boolean): JSONSchema4 {
-  const schemasByType = new Map<string, JSONSchema4>()
+function mergeSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinitionOptions): JSONSchema4 {
+  if (schemas.length === 0) {
+    return {}
+  }
 
-  for (const schema of schemas) {
-    const typeKey = schema.type as string | undefined
+  if (schemas.length === 1) {
+    return schemas[0]!
+  }
 
-    // For primitive types, deduplicate by type
-    // For objects/arrays, keep all (use unique key)
-    if (typeKey && typeKey !== 'object' && typeKey !== 'array') {
-      if (!schemasByType.has(typeKey)) {
-        schemasByType.set(typeKey, schema)
-      }
+  const objectSchemas = schemas.filter(schema => schema.type === 'object')
+  const arraySchemas = schemas.filter(schema => schema.type === 'array')
+  const primitiveSchemas = schemas.filter(
+    schema => schema.type !== 'object' && schema.type !== 'array',
+  )
+
+  const variants: JSONSchema4[] = []
+
+  if (objectSchemas.length > 0) {
+    variants.push(objectSchemas.length === 1 ? objectSchemas[0]! : mergeObjectSchemas(objectSchemas, options))
+  }
+
+  if (arraySchemas.length > 0) {
+    variants.push(arraySchemas.length === 1 ? arraySchemas[0]! : mergeArraySchemas(arraySchemas, options))
+  }
+
+  // Deduplicate primitives by type, preserving first-seen order
+  const seenPrimitiveTypes = new Set<unknown>()
+  for (const schema of primitiveSchemas) {
+    if (!seenPrimitiveTypes.has(schema.type)) {
+      seenPrimitiveTypes.add(schema.type)
+      variants.push(schema)
     }
-    else {
-      schemasByType.set(`${typeKey}-${schemasByType.size}`, schema)
-    }
   }
 
-  const unionSchemas = Array.from(schemasByType.values())
-
-  if (hasEmptySchemas) {
-    unionSchemas.push({}) // Add empty schema for unknown/any types
-  }
-
-  // If after deduplication we only have one schema, return it directly
-  if (unionSchemas.length === 1 && !hasEmptySchemas) {
-    return unionSchemas[0]!
-  }
-
-  return {
-    anyOf: unionSchemas.map(schema => ({
-      ...schema,
-      additionalProperties: schema.type === 'object'
-        ? schema.additionalProperties
-        : undefined,
-    })),
-  }
+  return variants.length === 1 ? variants[0]! : { anyOf: variants }
 }
 
 /**
@@ -180,8 +154,9 @@ function mergeObjectSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinit
 
   for (const schema of schemasWithProperties) {
     for (const [key, value] of Object.entries(schema.properties!)) {
-      if (!propertySchemas.has(key))
+      if (!propertySchemas.has(key)) {
         propertySchemas.set(key, [])
+      }
 
       propertySchemas.get(key)!.push(value)
     }
