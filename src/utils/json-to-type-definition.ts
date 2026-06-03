@@ -1,3 +1,4 @@
+// `JSONSchema4` matches `json-schema-to-typescript-lite`'s `compile(schema: JSONSchema4)` input contract
 import type { JSONSchema4 } from 'json-schema'
 import type { JsonValue } from './types.ts'
 import { CODE_HEADER_DIRECTIVES } from '../constants.ts'

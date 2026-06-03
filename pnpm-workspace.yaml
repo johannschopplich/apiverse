@@ -1,0 +1,13 @@
+shellEmulator: true
+trustPolicy: no-downgrade
+
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+
+overrides:
+  function-bind: npm:@socketregistry/function-bind@^1.0.7
+  hasown: npm:@socketregistry/hasown@^1.0.7
+  indent-string: npm:@socketregistry/indent-string@^1.0.14
+  is-core-module: npm:@socketregistry/is-core-module@^1.0.11
+  path-parse: npm:@socketregistry/path-parse@^1.0.8
