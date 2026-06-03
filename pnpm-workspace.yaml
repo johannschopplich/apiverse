@@ -1,6 +1,10 @@
 shellEmulator: true
 trustPolicy: no-downgrade
 
+trustPolicyExclude:
+  - vite@5.4.21
+  - tinyclip@0.1.13
+
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
