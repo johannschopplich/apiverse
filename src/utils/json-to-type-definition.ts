@@ -184,9 +184,7 @@ function mergeObjectSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinit
   }
 }
 
-/**
- * Merges multiple array schemas by merging their item schemas.
- */
+/** Merges multiple array schemas by merging their item schemas. */
 function mergeArraySchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinitionOptions): JSONSchema4 {
   const itemSchemas = schemas
     .map(schema => schema.items)

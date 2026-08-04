@@ -24,9 +24,7 @@ Schemas extend validators with JSON Schema support:
 
 ```ts
 interface Schema<T = unknown> extends Validator<T> {
-  /**
-   * Schema type for inference.
-   */
+  /** Schema type for inference. */
   _type: T
 
   readonly jsonSchema: JSONSchema7

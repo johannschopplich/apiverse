@@ -7,20 +7,14 @@ const schemaSymbol: unique symbol = Symbol.for('apiful.schema')
 export interface Schema<T = unknown> extends Validator<T> {
   [schemaSymbol]: true
 
-  /**
-   * Schema type for inference.
-   */
+  /** Schema type for inference. */
   _type: T
 
-  /**
-   * The JSON Schema for the schema.
-   */
+  /** The JSON Schema for the schema. */
   readonly jsonSchema: JSONSchema7
 }
 
-/**
- * Create a schema using a JSON Schema.
- */
+/** Create a schema using a JSON Schema. */
 export function jsonSchema<T = unknown>(
   jsonSchema: JSONSchema7,
   { validate }: {

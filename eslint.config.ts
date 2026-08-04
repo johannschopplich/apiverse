@@ -5,6 +5,10 @@ import antfu from '@antfu/eslint-config'
 const config: FlatConfigComposer<TypedFlatConfigItem, ConfigNames> = antfu().append({
   rules: {
     'ts/no-unsafe-function-type': 'off',
+    'jsdoc/multiline-blocks': ['error', {
+      noMultilineBlocks: true,
+      minimumLengthForMultiline: 100,
+    }],
   },
 })
 
