@@ -3,7 +3,7 @@ import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand } from 'citty'
-import { CODE_HEADER_DIRECTIVES, DEFAULT_OUTFILE } from '../../constants.ts'
+import { DEFAULT_OUTFILE, GENERATED_FILE_HEADER } from '../../constants.ts'
 import { generateDTS, generateDTSModules } from '../../openapi/generate.ts'
 import { CliError, commonArgs, withCleanErrors } from '../errors.ts'
 import * as log from '../log.ts'
@@ -70,7 +70,7 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
     if (!args.outdir) {
       const outfilePath = path.resolve(rootDir, args.outfile || DEFAULT_OUTFILE)
       const types = await generateDTS(resolvedOpenAPIServices)
-      await fsp.writeFile(outfilePath, `${CODE_HEADER_DIRECTIVES}${types}`)
+      await fsp.writeFile(outfilePath, `${GENERATED_FILE_HEADER}${types}`)
 
       const relativePath = path.relative(rootDir, outfilePath)
       log.success(`OpenAPI types generated in \`${relativePath}\` (${serviceCount} ${servicesLabel})`)
@@ -100,15 +100,15 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
       .join('\n')
 
     const entryContent = references
-      ? `${CODE_HEADER_DIRECTIVES}${references}\n\n${entry}`
-      : `${CODE_HEADER_DIRECTIVES}${entry}`
+      ? `${GENERATED_FILE_HEADER}${references}\n\n${entry}`
+      : `${GENERATED_FILE_HEADER}${entry}`
 
     await fsp.writeFile(entryFilePath, entryContent)
 
     await Promise.all(
       fragments.map(async ([id, content]) => {
         const fragmentPath = path.join(fragmentDir, `${id}.d.ts`)
-        await fsp.writeFile(fragmentPath, `${CODE_HEADER_DIRECTIVES}${content}`)
+        await fsp.writeFile(fragmentPath, `${GENERATED_FILE_HEADER}${content}`)
       }),
     )
 

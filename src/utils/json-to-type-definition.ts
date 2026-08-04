@@ -1,7 +1,7 @@
 // `JSONSchema4` matches `json-schema-to-typescript-lite`'s `compile(schema: JSONSchema4)` input contract.
 import type { JSONSchema4 } from 'json-schema'
 import type { JsonValue } from './types.ts'
-import { CODE_HEADER_DIRECTIVES } from '../constants.ts'
+import { LINT_DISABLE_HEADER } from '../constants.ts'
 
 export interface TypeDefinitionOptions {
   /** @default 'Root' */
@@ -35,7 +35,7 @@ export async function jsonToTypeDefinition(
   const schema = createJsonSchema(data, resolvedOptions)
   const output = await compile(schema, resolvedOptions.typeName)
 
-  return `${CODE_HEADER_DIRECTIVES}\n${output}\n`
+  return `${LINT_DISABLE_HEADER}${output}\n`
 }
 
 function createJsonSchema(data: JsonValue, options: ResolvedTypeDefinitionOptions): JSONSchema4 {

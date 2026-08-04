@@ -78,7 +78,6 @@ describe('jsonToTypeDefinition', () => {
       const result = await jsonToTypeDefinition(input as unknown as JsonValue, { typeName: 'Mixed' })
       expect(result).toMatchInlineSnapshot(`
         "/* eslint-disable */
-
         export type Mixed = ({
           a?: number
           b?: number
@@ -116,7 +115,6 @@ describe('jsonToTypeDefinition', () => {
       const result = await jsonToTypeDefinition({ a: { b: { c: 1 } } }, { typeName: 'Nested' })
       expect(result).toMatchInlineSnapshot(`
         "/* eslint-disable */
-
         export interface Nested {
           a?: {
             b?: {
@@ -169,7 +167,6 @@ describe('jsonToTypeDefinition', () => {
       const result = await jsonToTypeDefinition({ a: { b: 1 } }, { typeName: 'Strict', strictProperties: true })
       expect(result).toMatchInlineSnapshot(`
         "/* eslint-disable */
-
         export interface Strict {
           a: {
             b: number
