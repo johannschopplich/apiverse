@@ -36,17 +36,14 @@ export async function generateDTSModules(
   const resolvedSchemas = Object.fromEntries(resolvedSchemaEntries)
   const serviceIds = Object.keys(resolvedSchemas)
 
-  // Build import statements.
   const servicePathImports = serviceIds
     .map(id => `  import { paths as ${pascalCase(id)}Paths, components as ${pascalCase(id)}Components } from 'apiful/schema/${id}'`)
     .join('\n')
 
-  // Build repository interface entries.
   const schemaRepositoryEntries = serviceIds
     .map(id => `    '${id}': ${pascalCase(id)}Paths`)
     .join('\n')
 
-  // Build type exports.
   const typeExports = serviceIds
     .map((id) => {
       return [`
