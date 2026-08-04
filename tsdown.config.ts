@@ -7,7 +7,7 @@ const config: UserConfig = defineConfig({
   entry: [
     ...([...inferExports(exports)]
       .filter(entry => !entry.endsWith('schema.ts'))),
-    'src/cli/index.ts',
+    'src/cli/entry.ts',
   ],
   external: [
     'apiful/schema',

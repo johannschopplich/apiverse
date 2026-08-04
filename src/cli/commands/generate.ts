@@ -3,9 +3,9 @@ import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand } from 'citty'
-import { consola } from 'consola'
 import { CODE_HEADER_DIRECTIVES, DEFAULT_OUTFILE } from '../../constants.ts'
 import { generateDTS, generateDTSModules } from '../../openapi/generate.ts'
+import * as log from '../log.ts'
 import { loadConfig } from '../utils.ts'
 
 const args: ArgsDef = {
@@ -37,15 +37,17 @@ const command: CommandDef<ArgsDef> = defineCommand({
 
     // Validate mutually exclusive options
     if (args.outfile && args.outdir) {
-      consola.error('Cannot use both --outfile and --outdir. Use --outfile for single-file output or --outdir for fragmented output.')
-      process.exit(1)
+      log.error('Cannot use both --outfile and --outdir. Use --outfile for single-file output or --outdir for fragmented output.')
+      process.exitCode = 1
+      return
     }
 
     const { config } = await loadConfig(rootDir)
 
     if (Object.keys(config).length === 0) {
-      consola.error('Configuration file `apiful.config.{js,ts,mjs,cjs,json}` is empty or does not exist')
-      process.exit(1)
+      log.error('Configuration file `apiful.config.{js,ts,mjs,cjs,json}` is empty or does not exist')
+      process.exitCode = 1
+      return
     }
 
     const resolvedOpenAPIServices = Object.fromEntries(
@@ -54,7 +56,7 @@ const command: CommandDef<ArgsDef> = defineCommand({
     )
 
     if (Object.keys(resolvedOpenAPIServices).length === 0) {
-      consola.info('No OpenAPI schemas found, skipping generation')
+      log.info('No OpenAPI schemas found, skipping generation')
       return
     }
 
@@ -74,7 +76,7 @@ const command: CommandDef<ArgsDef> = defineCommand({
       await fsp.writeFile(outfilePath, `${CODE_HEADER_DIRECTIVES}${types}`)
 
       const relativePath = path.relative(rootDir, outfilePath)
-      consola.success(`OpenAPI types generated in \`${relativePath}\` (${serviceCount} ${servicesLabel})`)
+      log.success(`OpenAPI types generated in \`${relativePath}\` (${serviceCount} ${servicesLabel})`)
       return
     }
 
@@ -119,7 +121,7 @@ const command: CommandDef<ArgsDef> = defineCommand({
     )
 
     const relativeOutdir = path.relative(rootDir, outputDir)
-    consola.success(`OpenAPI types generated in \`${relativeOutdir}/\` (entry + ${fragments.length} ${servicesLabel})`)
+    log.success(`OpenAPI types generated in \`${relativeOutdir}/\` (entry + ${fragments.length} ${servicesLabel})`)
   },
 })
 

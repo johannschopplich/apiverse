@@ -1,9 +1,10 @@
-import { defineCommand, runMain } from 'citty'
+import type { ArgsDef, CommandDef } from 'citty'
+import { defineCommand } from 'citty'
 import pkg from '../../package.json' with { type: 'json' }
 
 const { name, version } = pkg
 
-const command = defineCommand({
+export const mainCommand: CommandDef<ArgsDef> = defineCommand({
   meta: {
     name,
     version,
@@ -13,5 +14,3 @@ const command = defineCommand({
     generate: () => import('./commands/generate.ts').then(command => command.default),
   },
 })
-
-runMain(command)

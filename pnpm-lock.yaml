@@ -18,15 +18,15 @@ importers:
       '@types/json-schema':
         specifier: ^7.0.15
         version: 7.0.15
+      ansis:
+        specifier: ^4.3.1
+        version: 4.3.1
       c12:
         specifier: ^4.0.0-beta.5
         version: 4.0.0-beta.5(chokidar@5.0.0)(jiti@2.7.0)
       citty:
         specifier: ^0.2.2
         version: 0.2.2
-      consola:
-        specifier: ^3.4.2
-        version: 3.4.2
       ofetch:
         specifier: ^1.5.1
         version: 1.5.1
@@ -58,6 +58,9 @@ importers:
       bumpp:
         specifier: ^11.1.0
         version: 11.1.0
+      consola:
+        specifier: ^3.4.2
+        version: 3.4.2
       eslint:
         specifier: ^10.4.1
         version: 10.4.1(jiti@2.7.0)
