@@ -27,7 +27,7 @@ export type ApiRouter = {
 
 export function apiRouterBuilder() {
   return function (client: ApiClient): ApiRouter {
-    // Callable internal target required to use `apply` on it
+    // Callable internal target required to use `apply` on it.
     const internalTarget = (() => {}) as ApiRouter
     const fetchFn = ofetch.create(client.defaultOptions)
 

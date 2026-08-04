@@ -50,7 +50,7 @@ export class TypeValidationError extends Error {
 /**
  * Create a validator.
  *
- * @param validate A validation function for the schema.
+ * @param validate A validation function for the schema
  */
 export function validator<T>(
   validate?: ((value: unknown) => ValidationResult<T>),
@@ -62,10 +62,10 @@ export function validator<T>(
  * Validates the types of an unknown object using a schema and
  * return a strongly-typed object.
  *
- * @template T - The type of the object to validate.
- * @param {string} options.value - The object to validate.
- * @param {Validator<T>} options.schema - The schema to use for validating the JSON.
- * @returns {T} - The typed object.
+ * @template T The type of the object to validate
+ * @param {string} options.value The object to validate
+ * @param {Validator<T>} options.schema The schema to use for validating the JSON
+ * @returns {T} The typed object
  */
 export function validateTypes<T>({
   value,
@@ -87,10 +87,10 @@ export function validateTypes<T>({
  * Safely validates the types of an unknown object using a schema and
  * return a strongly-typed object.
  *
- * @template T - The type of the object to validate.
- * @param {string} options.value - The JSON object to validate.
- * @param {Validator<T>} options.schema - The schema to use for validating the JSON.
- * @returns An object with either a `success` flag and the parsed and typed data, or a `success` flag and an error object.
+ * @template T The type of the object to validate
+ * @param {string} options.value The JSON object to validate
+ * @param {Validator<T>} options.schema The schema to use for validating the JSON
+ * @returns An object with either a `success` flag and the parsed and typed data, or a `success` flag and an error object
  */
 export function safeValidateTypes<T>({
   value,

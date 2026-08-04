@@ -186,9 +186,9 @@ describe('jsonToTypeDefinition', () => {
         { shared: 2, onlySecond: true },
       ]
       const result = await jsonToTypeDefinition(input as unknown as JsonValue, { typeName: 'Merged', strictProperties: true })
-      // `shared` appears in both objects, so it should be required
+      // `shared` appears in both objects, so it should be required.
       expect(result).toMatch(/shared:\s*number/)
-      // `onlyFirst` and `onlySecond` only appear in one object each, so they should be optional
+      // `onlyFirst` and `onlySecond` only appear in one object each, so they should be optional.
       expect(result).toContain('onlyFirst?:')
       expect(result).toContain('onlySecond?:')
     })

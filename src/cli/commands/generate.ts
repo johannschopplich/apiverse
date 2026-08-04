@@ -35,7 +35,7 @@ const command: CommandDef<ArgsDef> = defineCommand({
   async run({ args }) {
     const rootDir = args.root || process.cwd()
 
-    // Validate mutually exclusive options
+    // Validate mutually exclusive options.
     if (args.outfile && args.outdir) {
       log.error('Cannot use both --outfile and --outdir. Use --outfile for single-file output or --outdir for fragmented output.')
       process.exitCode = 1
@@ -69,7 +69,7 @@ const command: CommandDef<ArgsDef> = defineCommand({
     const serviceCount = Object.keys(resolvedOpenAPIServices).length
     const servicesLabel = serviceCount === 1 ? 'service' : 'services'
 
-    // Single-file mode (default)
+    // Single-file mode (default).
     if (!args.outdir) {
       const outfilePath = path.resolve(rootDir, args.outfile || DEFAULT_OUTFILE)
       const types = await generateDTS(resolvedOpenAPIServices)
@@ -80,7 +80,7 @@ const command: CommandDef<ArgsDef> = defineCommand({
       return
     }
 
-    // Directory mode (fragmented output)
+    // Directory mode (fragmented output).
     const { entry, modules } = await generateDTSModules(resolvedOpenAPIServices)
     const fragments = Object.entries(modules)
 
@@ -88,15 +88,15 @@ const command: CommandDef<ArgsDef> = defineCommand({
     const entryFilePath = path.join(outputDir, DEFAULT_OUTFILE)
     const fragmentDir = path.join(outputDir, 'schema')
 
-    // Clean up the entire output directory
+    // Clean up the entire output directory.
     await fsp.rm(outputDir, { recursive: true, force: true })
 
-    // Create directory structure
+    // Create directory structure.
     await fsp.mkdir(outputDir, { recursive: true })
     if (fragments.length > 0)
       await fsp.mkdir(fragmentDir, { recursive: true })
 
-    // Generate triple-slash references for fragments
+    // Generate triple-slash references for fragments.
     const references = fragments
       .map(([id]) => {
         const fragmentPath = path.join(fragmentDir, `${id}.d.ts`)
@@ -109,10 +109,10 @@ const command: CommandDef<ArgsDef> = defineCommand({
       ? `${CODE_HEADER_DIRECTIVES}${references}\n\n${entry}`
       : `${CODE_HEADER_DIRECTIVES}${entry}`
 
-    // Write entry file
+    // Write entry file.
     await fsp.writeFile(entryFilePath, entryContent)
 
-    // Write fragment files
+    // Write fragment files.
     await Promise.all(
       fragments.map(async ([id, content]) => {
         const fragmentPath = path.join(fragmentDir, `${id}.d.ts`)

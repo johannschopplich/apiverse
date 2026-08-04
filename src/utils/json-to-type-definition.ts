@@ -1,4 +1,4 @@
-// `JSONSchema4` matches `json-schema-to-typescript-lite`'s `compile(schema: JSONSchema4)` input contract
+// `JSONSchema4` matches `json-schema-to-typescript-lite`'s `compile(schema: JSONSchema4)` input contract.
 import type { JSONSchema4 } from 'json-schema'
 import type { JsonValue } from './types.ts'
 import { CODE_HEADER_DIRECTIVES } from '../constants.ts'
@@ -130,7 +130,7 @@ function mergeSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinitionOpt
     variants.push(arraySchemas.length === 1 ? arraySchemas[0]! : mergeArraySchemas(arraySchemas, options))
   }
 
-  // Deduplicate primitives by type, preserving first-seen order
+  // Deduplicate primitives by type, preserving first-seen order.
   const seenPrimitiveTypes = new Set<unknown>()
   for (const schema of primitiveSchemas) {
     if (!seenPrimitiveTypes.has(schema.type)) {
@@ -162,7 +162,7 @@ function mergeObjectSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinit
     }
   }
 
-  // Use intersection for required properties: only require properties that are required in **all** schemas
+  // Use intersection for required properties: only require properties that are required in **all** schemas.
   const requiredProperties = schemasWithProperties.length > 0
     ? Array.from(propertySchemas.keys()).filter((key) => {
         return schemasWithProperties.every(

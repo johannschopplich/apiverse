@@ -15,7 +15,7 @@ export const currentDir: string = fileURLToPath(new URL('.', import.meta.url))
 
 export async function createListener(): Promise<Listener> {
   const app = new H3()
-    // Static constant endpoint - GET only
+    // Static constant endpoint - GET only.
     .use(
       '/echo/static/constant',
       defineHandler((event) => {
@@ -26,7 +26,7 @@ export async function createListener(): Promise<Listener> {
         return { value: 'foo' }
       }),
     )
-    // Request echo endpoints - specific HTTP methods
+    // Request echo endpoints - specific HTTP methods.
     .use(
       '/echo/request',
       defineHandler(async (event) => {
@@ -36,7 +36,7 @@ export async function createListener(): Promise<Listener> {
           throw new HTTPError({ statusCode: 405 })
         }
 
-        // Handle request body based on method
+        // Handle request body based on method.
         let body: unknown
         try {
           if (event.req.method !== 'DELETE') {
@@ -55,7 +55,7 @@ export async function createListener(): Promise<Listener> {
         }
       }),
     )
-    // Query parameters endpoint - GET only
+    // Query parameters endpoint - GET only.
     .use(
       '/echo/query',
       defineHandler((event) => {
@@ -66,7 +66,7 @@ export async function createListener(): Promise<Listener> {
         return getQuery(event)
       }),
     )
-    // Catch-all path echo endpoint - returns full request info for any method on /echo/path/**
+    // Catch-all path echo endpoint - returns full request info for any method on /echo/path/**.
     .use(
       '/echo/path/**',
       defineHandler(async (event) => {
@@ -82,7 +82,7 @@ export async function createListener(): Promise<Listener> {
         }
       }),
     )
-    // 404 handler for non-existent routes
+    // 404 handler for non-existent routes.
     .use(
       defineHandler(() => {
         throw new HTTPError({ statusCode: 404 })

@@ -36,17 +36,17 @@ export async function generateDTSModules(
   const resolvedSchemas = Object.fromEntries(resolvedSchemaEntries)
   const serviceIds = Object.keys(resolvedSchemas)
 
-  // Build import statements
+  // Build import statements.
   const servicePathImports = serviceIds
     .map(id => `  import { paths as ${pascalCase(id)}Paths, components as ${pascalCase(id)}Components } from 'apiful/schema/${id}'`)
     .join('\n')
 
-  // Build repository interface entries
+  // Build repository interface entries.
   const schemaRepositoryEntries = serviceIds
     .map(id => `    '${id}': ${pascalCase(id)}Paths`)
     .join('\n')
 
-  // Build type exports
+  // Build type exports.
   const typeExports = serviceIds
     .map((id) => {
       return [`
@@ -231,7 +231,7 @@ async function resolveSchema({ schema }: ServiceOptions): Promise<string | URL |
       ? schema
       : path.resolve(process.cwd(), schema)
 
-    // openapi-typescript expects file URLs for local files
+    // openapi-typescript expects file URLs for local files.
     return pathToFileURL(resolvedPath)
   }
 
@@ -243,10 +243,10 @@ function applyLineIndent(code: string, indent = 2): string {
 }
 
 function normalizeIndentation(code: string) {
-  // Replace each cluster of four spaces with two spaces
+  // Replace each cluster of four spaces with two spaces.
   const replacedCode = code.replace(/^( {4})+/gm, match => '  '.repeat(match.length / 4))
 
-  // Ensure each line starts with exactly two spaces
+  // Ensure each line starts with exactly two spaces.
   const normalizedCode = replacedCode.replace(/^/gm, '  ')
 
   return normalizedCode
