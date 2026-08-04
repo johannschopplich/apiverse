@@ -48,7 +48,7 @@ export class TypeValidationError extends Error {
 }
 
 /**
- * Create a validator.
+ * Wraps a validation function as a `Validator`.
  *
  * @param validate A validation function for the schema
  */
@@ -59,13 +59,11 @@ export function validator<T>(
 }
 
 /**
- * Validates the types of an unknown object using a schema and
- * return a strongly-typed object.
+ * Validates an unknown value against a schema and returns it strongly typed.
  *
- * @template T The type of the object to validate
- * @param {string} options.value The object to validate
- * @param {Validator<T>} options.schema The schema to use for validating the JSON
- * @returns {T} The typed object
+ * @template T The type the value is validated against
+ * @param value The value to validate
+ * @param schema The schema to validate against
  */
 export function validateTypes<T>({
   value,
@@ -84,13 +82,13 @@ export function validateTypes<T>({
 }
 
 /**
- * Safely validates the types of an unknown object using a schema and
- * return a strongly-typed object.
+ * Validates an unknown value against a schema, reporting failure as a result
+ * rather than as a thrown error.
  *
- * @template T The type of the object to validate
- * @param {string} options.value The JSON object to validate
- * @param {Validator<T>} options.schema The schema to use for validating the JSON
- * @returns An object with either a `success` flag and the parsed and typed data, or a `success` flag and an error object
+ * @template T The type the value is validated against
+ * @param value The value to validate
+ * @param schema The schema to validate against
+ * @returns Either the typed value under a `success` flag, or the error that rejected it
  */
 export function safeValidateTypes<T>({
   value,

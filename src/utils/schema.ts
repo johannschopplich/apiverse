@@ -10,11 +10,9 @@ export interface Schema<T = unknown> extends Validator<T> {
   /** Schema type for inference. */
   _type: T
 
-  /** The JSON Schema for the schema. */
   readonly jsonSchema: JSONSchema7
 }
 
-/** Create a schema using a JSON Schema. */
 export function jsonSchema<T = unknown>(
   jsonSchema: JSONSchema7,
   { validate }: {
@@ -23,7 +21,7 @@ export function jsonSchema<T = unknown>(
 ): Schema<T> {
   return {
     [schemaSymbol]: true,
-    _type: undefined as T, // Should never be used directly
+    _type: undefined as T, // Carries the inferred type only, and is never read.
     [validatorSymbol]: true,
     jsonSchema,
     validate,
