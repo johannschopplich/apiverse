@@ -5,10 +5,12 @@ import process from 'node:process'
 import { defineCommand } from 'citty'
 import { CODE_HEADER_DIRECTIVES, DEFAULT_OUTFILE } from '../../constants.ts'
 import { generateDTS, generateDTSModules } from '../../openapi/generate.ts'
+import { CliError, commonArgs, withCleanErrors } from '../errors.ts'
 import * as log from '../log.ts'
 import { loadConfig } from '../utils.ts'
 
 const args: ArgsDef = {
+  ...commonArgs,
   outfile: {
     type: 'string',
     description: 'Path to the output file',
@@ -26,7 +28,7 @@ const args: ArgsDef = {
   },
 }
 
-const command: CommandDef<ArgsDef> = defineCommand({
+const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
   meta: {
     name: 'generate',
     description: 'Generates TypeScript definitions from OpenAPI schemas',
@@ -36,17 +38,13 @@ const command: CommandDef<ArgsDef> = defineCommand({
     const rootDir = args.root || process.cwd()
 
     if (args.outfile && args.outdir) {
-      log.error('Cannot use both --outfile and --outdir. Use --outfile for single-file output or --outdir for fragmented output.')
-      process.exitCode = 1
-      return
+      throw new CliError('Cannot use both --outfile and --outdir. Use --outfile for single-file output or --outdir for fragmented output.')
     }
 
     const { config } = await loadConfig(rootDir)
 
     if (Object.keys(config).length === 0) {
-      log.error('Configuration file `apiful.config.{js,ts,mjs,cjs,json}` is empty or does not exist')
-      process.exitCode = 1
-      return
+      throw new CliError('Configuration file `apiful.config.{js,ts,mjs,cjs,json}` is empty or does not exist')
     }
 
     const resolvedOpenAPIServices = Object.fromEntries(
@@ -117,7 +115,7 @@ const command: CommandDef<ArgsDef> = defineCommand({
     const relativeOutdir = path.relative(rootDir, outputDir)
     log.success(`OpenAPI types generated in \`${relativeOutdir}/\` (entry + ${fragments.length} ${servicesLabel})`)
   },
-})
+}))
 
 export default command
 
