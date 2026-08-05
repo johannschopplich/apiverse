@@ -29,9 +29,11 @@ const newUser = await client('users', {
 
 ```ts
 declare function createClient<const BaseURL extends string = '/'>(
-  defaultOptions?: Omit<FetchOptions, 'baseURL'> & { baseURL?: BaseURL }
+  defaultOptions?: ClientOptions<BaseURL>
 ): ApiClient<BaseURL>
 ```
+
+`ClientOptions` is defined with the [`ApiClient`](/reference/api-client) type.
 
 > [!NOTE]
 > `FetchOptions` are imported from [ofetch](https://github.com/unjs/ofetch).

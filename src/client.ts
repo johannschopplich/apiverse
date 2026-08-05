@@ -9,17 +9,20 @@ export type ApiExtension = HandlerExtension | MethodsExtension
 export type HandlerExtensionBuilder = (client: ApiClient) => HandlerExtension
 export type MethodsExtensionBuilder = (client: ApiClient) => MethodsExtension
 
+/** Fetch options where `baseURL` keeps the literal type `createClient` inferred, rather than widening to `string`. */
+export type ClientOptions<BaseURL extends string = string> = Omit<FetchOptions, 'baseURL'> & { baseURL?: BaseURL }
+
 export interface ApiClient<BaseURL extends string = string> extends Function {
   _handler: Fn
   _extensions: Record<PropertyKey, unknown>
-  defaultOptions: FetchOptions
+  defaultOptions: ClientOptions<BaseURL>
   with: <Extension extends ApiExtension>(
     createExtension: (client: ApiClient<BaseURL>) => Extension,
   ) => this & Extension
 }
 
 export function createClient<const BaseURL extends string = '/'>(
-  defaultOptions: Omit<FetchOptions, 'baseURL'> & { baseURL?: BaseURL } = {},
+  defaultOptions: ClientOptions<BaseURL> = {},
 ): ApiClient<BaseURL> {
   const client = (() => {}) as unknown as ApiClient<BaseURL>
 
