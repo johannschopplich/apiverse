@@ -13,24 +13,30 @@ export interface DTSModuleOutput {
   modules: Record<string, string>
 }
 
+export interface GenerateOptions {
+  openAPITSOptions?: OpenAPITSOptions
+  /** Directory a relative schema path resolves against. Defaults to the current working directory. */
+  rootDir?: string
+}
+
 export async function generateDTS(
   services: Record<string, ServiceOptions>,
-  openAPITSOptions?: OpenAPITSOptions,
+  options: GenerateOptions = {},
 ): Promise<string> {
-  const { entry, modules } = await generateDTSModules(services, openAPITSOptions)
+  const { entry, modules } = await generateDTSModules(services, options)
   const moduleContent = Object.values(modules).join('\n\n')
   return moduleContent ? `${entry}\n${moduleContent}` : entry
 }
 
 export async function generateDTSModules(
   services: Record<string, ServiceOptions>,
-  openAPITSOptions?: OpenAPITSOptions,
+  options: GenerateOptions = {},
 ): Promise<DTSModuleOutput> {
   const resolvedSchemaEntries = await Promise.all(
     Object.entries(services)
       .filter(([, service]) => Boolean(service.schema))
       .map(async ([id, service]) => {
-        const types = await generateSchemaTypes({ id, service, openAPITSOptions })
+        const types = await generateSchemaTypes({ id, service, ...options })
         return [id, types] as const
       }),
   )
@@ -164,14 +170,13 @@ ${applyLineIndent(typeExports)}
 async function generateSchemaTypes(options: {
   id: string
   service: ServiceOptions
-  openAPITSOptions?: OpenAPITSOptions
-}) {
+} & GenerateOptions) {
   const { default: openAPITS, astToString } = await import('openapi-typescript')
     .catch(() => {
       throw new Error('Missing dependency "openapi-typescript", please install it')
     })
 
-  const schema = await resolveSchema(options.service)
+  const schema = await resolveSchema(options.service, options.rootDir)
   const resolvedOpenAPITSOptions = defu(options.service.openAPITS || {}, options.openAPITSOptions || {})
 
   try {
@@ -187,7 +192,10 @@ async function generateSchemaTypes(options: {
   }
 }
 
-async function resolveSchema({ schema }: ServiceOptions): Promise<string | URL | OpenAPI3> {
+async function resolveSchema(
+  { schema }: ServiceOptions,
+  rootDir = process.cwd(),
+): Promise<string | URL | OpenAPI3> {
   if (typeof schema === 'function')
     return await schema()
 
@@ -200,7 +208,7 @@ async function resolveSchema({ schema }: ServiceOptions): Promise<string | URL |
 
     const resolvedPath = path.isAbsolute(schema)
       ? schema
-      : path.resolve(process.cwd(), schema)
+      : path.resolve(rootDir, schema)
 
     // openapi-typescript expects file URLs for local files.
     return pathToFileURL(resolvedPath)

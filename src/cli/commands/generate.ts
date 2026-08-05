@@ -57,19 +57,13 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
       return
     }
 
-    for (const service of Object.values(resolvedOpenAPIServices)) {
-      if (typeof service.schema === 'string' && !service.schema.startsWith('http')) {
-        service.schema = path.resolve(rootDir, service.schema)
-      }
-    }
-
     const serviceCount = Object.keys(resolvedOpenAPIServices).length
     const servicesLabel = serviceCount === 1 ? 'service' : 'services'
 
     // Single-file mode (default).
     if (!args.outdir) {
       const outfilePath = path.resolve(rootDir, args.outfile || DEFAULT_OUTFILE)
-      const types = await generateDTS(resolvedOpenAPIServices)
+      const types = await generateDTS(resolvedOpenAPIServices, { rootDir })
       await fsp.writeFile(outfilePath, `${GENERATED_FILE_HEADER}${types}`)
 
       const relativePath = path.relative(rootDir, outfilePath)
@@ -78,7 +72,7 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
     }
 
     // Directory mode (fragmented output).
-    const { entry, modules } = await generateDTSModules(resolvedOpenAPIServices)
+    const { entry, modules } = await generateDTSModules(resolvedOpenAPIServices, { rootDir })
     const fragments = Object.entries(modules)
 
     const outputDir = path.resolve(rootDir, args.outdir)
