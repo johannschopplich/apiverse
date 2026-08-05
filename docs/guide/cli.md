@@ -34,6 +34,8 @@ By default, this command loads the APIful configuration from the `apiful.config.
 
 The generated TypeScript types are saved as `apiful.d.ts` in the same directory. This file augments the `apiful/schema` module with your generated types, making them available to the [OpenAPI](/extensions/openapi) extension.
 
+A schema that cannot be read or parsed fails the whole run: the command reports the service it choked on, exits with code `1`, and writes no types, rather than leaving you with a client that compiles and is silently untyped. Add `--verbose` for the underlying cause. Calling the generator from your own code instead of the CLI, the same failure arrives as a `SchemaGenerationError`.
+
 > [!NOTE]
 > Commit the generated `apiful.d.ts` file to version control so all team members have access to the same types. For optimal developer experience, consider integrating the generate command into your package.json scripts and running it in pre-commit hooks or CI pipelines to ensure types stay synchronized with schema changes.
 
@@ -65,4 +67,8 @@ The generated output follows this structure:
 - `generated/apiful.d.ts` – Main entry file with shared type helpers
 - `generated/schema/*.d.ts` – Individual service declaration files
 
-Splitting types into separate files keeps git diffs smaller and improves IDE performance for large schemas. To return to single-file mode, run the command with `--outfile` (or use the default behavior).
+Splitting types into separate files keeps git diffs smaller and improves IDE performance for large schemas.
+
+Each run rewrites the entry file and the fragment of every configured service, and deletes the fragments of services the configuration no longer lists. Files it did not write are left alone, so the directory may hold your own sources as well.
+
+To return to single-file mode, run the command with `--outfile` (or use the default behavior) and delete the directory yourself – nothing outside a run's own output is ever removed.
