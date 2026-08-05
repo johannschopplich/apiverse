@@ -1,6 +1,7 @@
 import type { Listener } from 'listhen'
 import type { ApiClient } from '../../src/client'
 import type { ApiRouter } from '../../src/extensions/api-router'
+import { joinURL } from 'utilful/path'
 import { afterAll, assertType, beforeAll, describe, expect, it } from 'vitest'
 import { apiRouterBuilder, createClient } from '../../src/index'
 import { createListener } from '../utils'
@@ -103,6 +104,20 @@ describe('apiRouterBuilder adapter', () => {
     const client = _client.with(apiRouterBuilder())
     const response = await client.echo!.query!.get()
     expect(response).toEqual({})
+  })
+
+  it('reports the request URL as its string value', () => {
+    const client = _client.with(apiRouterBuilder())
+    const route = client.echo!.static!
+    expect(String(route)).toBe(joinURL(_listener.url, 'echo/static'))
+    expect(`${route}`).toBe(joinURL(_listener.url, 'echo/static'))
+  })
+
+  it('leaves an unfinished chain non-thenable', async () => {
+    const client = _client.with(apiRouterBuilder())
+    const route = client.echo!.static!
+    expect((route as unknown as { then?: unknown }).then).toBeUndefined()
+    await expect(Promise.resolve(route)).resolves.toBe(route)
   })
 
   it('treats uppercase method access identically to lowercase', async () => {

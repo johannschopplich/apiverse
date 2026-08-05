@@ -33,7 +33,19 @@ export function apiRouterBuilder() {
 
     function p(url: string): ApiRouter {
       return new Proxy(internalTarget, {
-        get(_target, key: string) {
+        get(_target, key) {
+          if (typeof key === 'symbol')
+            return
+
+          // Answering `then` would make every route thenable, so a forgotten
+          // `.get()` would leave `await api.users` pending forever.
+          if (key === 'then')
+            return
+
+          // Logging a route asks for the URL built so far, not for a segment.
+          if (key === 'toString' || key === 'valueOf')
+            return () => url
+
           const method = key.toUpperCase()
 
           if (!SUPPORTED_METHODS.has(method))
