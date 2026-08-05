@@ -5,33 +5,33 @@ import { jsonToTypeDefinition } from '../../src/utils/json-to-type-definition'
 describe('jsonToTypeDefinition', () => {
   describe('primitive types', () => {
     it.each([
-      ['test', 'StringType', 'string'],
-      [42, 'NumberType', 'number'],
-      [true, 'BooleanType', 'boolean'],
-      [null, 'NullType', 'null'],
-    ] as const)('handles %p as %s', async (input, typeName, expected) => {
+      { input: 'test', typeName: 'StringType', expected: 'string' },
+      { input: 42, typeName: 'NumberType', expected: 'number' },
+      { input: true, typeName: 'BooleanType', expected: 'boolean' },
+      { input: null, typeName: 'NullType', expected: 'null' },
+    ] as const)('converts $input to the type $expected', async ({ input, typeName, expected }) => {
       const result = await jsonToTypeDefinition(input, { typeName })
       expect(result).toContain(`export type ${typeName} = ${expected}`)
     })
   })
 
   describe('arrays', () => {
-    it('handles empty array', async () => {
+    it('types an empty array as unknown[]', async () => {
       const result = await jsonToTypeDefinition([], { typeName: 'EmptyArray' })
       expect(result).toContain('export type EmptyArray = unknown[]')
     })
 
-    it('handles homogeneous array', async () => {
+    it('types an array of numbers as number[]', async () => {
       const result = await jsonToTypeDefinition([1, 2, 3], { typeName: 'NumberArray' })
       expect(result).toContain('export type NumberArray = number[]')
     })
 
-    it('handles mixed type array', async () => {
+    it('unions the item types of a mixed array', async () => {
       const result = await jsonToTypeDefinition([1, 'two', true], { typeName: 'MixedArray' })
       expect(result).toContain('(number | string | boolean)[]')
     })
 
-    it('handles nested arrays', async () => {
+    it('types a nested array as number[][]', async () => {
       const result = await jsonToTypeDefinition([[1, 2], [3, 4]], { typeName: 'Matrix' })
       expect(result).toContain('export type Matrix = number[][]')
     })
@@ -106,12 +106,12 @@ describe('jsonToTypeDefinition', () => {
   })
 
   describe('objects', () => {
-    it('handles empty object', async () => {
+    it('types an empty object as an index signature', async () => {
       const result = await jsonToTypeDefinition({}, { typeName: 'EmptyObject' })
       expect(result).toContain('[k: string]: unknown')
     })
 
-    it('handles nested objects', async () => {
+    it('nests an interface for a nested object', async () => {
       const result = await jsonToTypeDefinition({ a: { b: { c: 1 } } }, { typeName: 'Nested' })
       expect(result).toMatchInlineSnapshot(`
         "/* eslint-disable */
@@ -139,7 +139,7 @@ describe('jsonToTypeDefinition', () => {
       expect(result).not.toContain('undef')
     })
 
-    it('handles null property values', async () => {
+    it('types a null property as null', async () => {
       const result = await jsonToTypeDefinition({ nullable: null, name: 'test' }, { typeName: 'WithNull' })
       expect(result).toContain('nullable?: null')
       expect(result).toContain('name?: string')

@@ -6,7 +6,7 @@ import { afterAll, assertType, beforeAll, describe, expect, it } from 'vitest'
 import { apiRouterBuilder, createClient } from '../../src/index'
 import { createListener } from '../utils'
 
-describe('apiRouterBuilder adapter', () => {
+describe('apiRouterBuilder', () => {
   let _listener: Listener
   let _client: ApiClient
 
@@ -24,7 +24,7 @@ describe('apiRouterBuilder adapter', () => {
     await _listener.close()
   })
 
-  it('handles GET request for static constant endpoint', async () => {
+  it('sends a GET request to the path built by dot notation', async () => {
     const client = _client.with(apiRouterBuilder())
     const response = await client.echo!.static!.constant!.get<{ value: string }>()
     expect(response).toEqual({ value: 'foo' })
@@ -32,21 +32,20 @@ describe('apiRouterBuilder adapter', () => {
   })
 
   it.each([
-    ['post', { foo: 'bar' }],
-    ['put', { foo: 'bar' }],
-    ['patch', { foo: 'bar' }],
-    ['delete', undefined],
-  ] as const)('routes %s requests to the echo endpoint', async (method, body) => {
+    ['POST', { foo: 'bar' }],
+    ['PUT', { foo: 'bar' }],
+    ['PATCH', { foo: 'bar' }],
+    ['DELETE', undefined],
+  ] as const)('sends %s with the payload as the request body', async (method, body) => {
     const client = _client.with(apiRouterBuilder())
-    const response = body === undefined
-      ? await client.echo!.request![method]()
-      : await client.echo!.request![method](body)
-    expect(response.method).toEqual(method.toUpperCase())
+    const route = client.echo!.request![method.toLowerCase() as Lowercase<typeof method>]!
+    const response = body === undefined ? await route() : await route(body)
+    expect(response.method).toEqual(method)
     if (body !== undefined)
       expect(response.body).toEqual(body)
   })
 
-  it('handles GET request with query parameters', async () => {
+  it('sends the first GET argument as the query string', async () => {
     const client = _client.with(apiRouterBuilder())
     const response = await client.echo!.query!.get({ value: 'bar' })
     expect(response).toEqual({ value: 'bar' })
@@ -78,14 +77,14 @@ describe('apiRouterBuilder adapter', () => {
     ['bracket notation', (c: ApiRouter) => c.echo!.static!['constant']!.get<{ value: string }>()],
     ['function call syntax', (c: ApiRouter) => c.echo!.static!('constant').get<{ value: string }>()],
     ['multiple segments in single call', (c: ApiRouter) => c('echo', 'static', 'constant').get<{ value: string }>()],
-  ])('supports %s for path segments', async (_name, call) => {
+  ])('builds the same path from %s', async (_name, call) => {
     const client = _client.with(apiRouterBuilder())
     const response = await call(client)
     expect(response).toEqual({ value: 'foo' })
     assertType<{ value: string }>(response)
   })
 
-  it('throws error for non-existent endpoints', async () => {
+  it('rejects with the server error for an unknown endpoint', async () => {
     const client = _client.with(apiRouterBuilder())
     await expect(async () => {
       await client.baz!.get<{ value: string }>()
@@ -100,7 +99,7 @@ describe('apiRouterBuilder adapter', () => {
     expect(response.body).toEqual({ foo: 'bar' })
   })
 
-  it('omits query string when GET called without data', async () => {
+  it('omits the query string for a GET without data', async () => {
     const client = _client.with(apiRouterBuilder())
     const response = await client.echo!.query!.get()
     expect(response).toEqual({})

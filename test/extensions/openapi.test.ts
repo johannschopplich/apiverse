@@ -14,7 +14,7 @@ vi.mock('ofetch', () => ({
 }))
 
 // eslint-disable-next-line test/prefer-lowercase-title
-describe('OpenAPIBuilder adapter', () => {
+describe('OpenAPIBuilder', () => {
   const mockFetch = vi.fn()
   const mockCreate = vi.fn()
 

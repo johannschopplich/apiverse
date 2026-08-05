@@ -4,7 +4,7 @@ import { afterAll, assertType, beforeAll, describe, expect, it } from 'vitest'
 import { createClient, ofetchBuilder } from '../../src/index'
 import { createListener } from '../utils'
 
-describe('ofetchBuilder adapter', () => {
+describe('ofetchBuilder', () => {
   let _listener: Listener
   let _client: ApiClient
 
@@ -22,14 +22,14 @@ describe('ofetchBuilder adapter', () => {
     await _listener.close()
   })
 
-  it('handles GET request with ofetch adapter', async () => {
+  it('returns the parsed body of a GET request', async () => {
     const client = _client.with(ofetchBuilder())
     const response = await client<{ foo: string }>('echo/static/constant')
     expect(response).toEqual({ value: 'foo' })
     assertType<{ foo: string }>(response)
   })
 
-  it('handles POST request with fetch options', async () => {
+  it('sends the method and body given as fetch options', async () => {
     const client = _client.with(ofetchBuilder())
     const response = await client('echo/request', {
       method: 'POST',

@@ -5,7 +5,7 @@ import { safeValidateTypes, validator } from '../../src/utils/validator'
 
 describe('schema', () => {
   describe('jsonSchema', () => {
-    it('creates schema with JSON schema definition', () => {
+    it('keeps the JSON schema definition it was given', () => {
       const schema = jsonSchema<string>({
         type: 'string',
       })
@@ -17,7 +17,7 @@ describe('schema', () => {
       `)
     })
 
-    it('creates schema with custom validation function', () => {
+    it('keeps the validate function it was given', () => {
       const schema = jsonSchema<number>(
         {
           type: 'number',
@@ -38,7 +38,7 @@ describe('schema', () => {
   })
 
   describe('isSchema', () => {
-    it('identifies valid schema objects', () => {
+    it('returns true for a schema from jsonSchema', () => {
       const schema = jsonSchema<string>({ type: 'string' })
       expect(isSchema(schema)).toBe(true)
     })
@@ -61,7 +61,7 @@ describe('schema', () => {
     })
   })
 
-  describe('jsonSchema integration with validator utilities', () => {
+  describe('validation', () => {
     it('validates values against the schema validate function', () => {
       const schema = jsonSchema<number>(
         { type: 'number' },

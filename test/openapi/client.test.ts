@@ -48,7 +48,7 @@ describe('createOpenAPIClient', () => {
     vi.clearAllMocks()
   })
 
-  it('creates ofetch instance with default options object', () => {
+  it('creates the ofetch instance with the default options', () => {
     const options = { baseURL: 'https://petstore3.swagger.io/api/v3' }
     createOpenAPIClient<'petStore'>(options)
     expect(mockCreate).toHaveBeenCalledWith(options)

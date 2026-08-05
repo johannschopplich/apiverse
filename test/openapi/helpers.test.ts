@@ -4,32 +4,32 @@ import type { SchemaPaths } from '../../src/openapi/client'
 import { describe, expectTypeOf, it } from 'vitest'
 
 // eslint-disable-next-line test/prefer-lowercase-title
-describe('SchemaPaths type helper', () => {
+describe('SchemaPaths', () => {
   it('resolves existing schema keys to their types', () => {
     expectTypeOf<SchemaPaths<'petStore'>>().toEqualTypeOf<OpenAPISchemaRepository['petStore']>()
     expectTypeOf<SchemaPaths<'testEcho'>>().toEqualTypeOf<OpenAPISchemaRepository['testEcho']>()
   })
 
-  it('returns empty object for non-existent schema keys', () => {
+  it('resolves an unknown schema key to Record<string, never>', () => {
     expectTypeOf<SchemaPaths<'nonExistent'>>().toEqualTypeOf<Record<string, never>>()
   })
 })
 
 // eslint-disable-next-line test/prefer-lowercase-title
-describe('PetStore type helper', () => {
-  it('extracts correct path parameter types', () => {
+describe('PetStore', () => {
+  it('extracts the path parameter types of a templated path', () => {
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['path']>().toEqualTypeOf<{ petId: number }>()
     expectTypeOf<PetStore<'/user/{username}', 'get'>['path']>().toEqualTypeOf<{ username: string }>()
     expectTypeOf<PetStore<'/store/order/{orderId}', 'get'>['path']>().toEqualTypeOf<{ orderId: number }>()
   })
 
-  it('extracts correct query parameter types', () => {
+  it('extracts the query parameter types', () => {
     expectTypeOf<PetStore<'/pet/findByStatus', 'get'>['query']>().toEqualTypeOf<{ status?: 'available' | 'pending' | 'sold' }>()
     expectTypeOf<PetStore<'/pet/findByTags', 'get'>['query']>().toEqualTypeOf<{ tags?: string[] }>()
     expectTypeOf<PetStore<'/user/login', 'get'>['query']>().toEqualTypeOf<{ username?: string, password?: string }>()
   })
 
-  it('extracts correct request body types using generated schemas', () => {
+  it('extracts the request body types from the generated components', () => {
     expectTypeOf<PetStore<'/pet', 'put'>['request']>().toEqualTypeOf<Components['schemas']['Pet']>()
     expectTypeOf<PetStore<'/pet', 'post'>['request']>().toEqualTypeOf<Components['schemas']['Pet']>()
     expectTypeOf<PetStore<'/store/order', 'post'>['request']>().toEqualTypeOf<Components['schemas']['Order']>()
@@ -37,7 +37,7 @@ describe('PetStore type helper', () => {
     expectTypeOf<PetStore<'/user/createWithList', 'post'>['request']>().toEqualTypeOf<Components['schemas']['User'][]>()
   })
 
-  it('extracts correct response types using generated schemas', () => {
+  it('extracts the 200 response types from the generated components', () => {
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['response']>().toEqualTypeOf<Components['schemas']['Pet']>()
     expectTypeOf<PetStore<'/pet/findByStatus', 'get'>['response']>().toEqualTypeOf<Components['schemas']['Pet'][]>()
     expectTypeOf<PetStore<'/store/inventory', 'get'>['response']>().toEqualTypeOf<{ [key: string]: number }>()
@@ -45,7 +45,7 @@ describe('PetStore type helper', () => {
     expectTypeOf<PetStore<'/user/{username}', 'get'>['response']>().toEqualTypeOf<Components['schemas']['User']>()
   })
 
-  it('provides access to all response status codes', () => {
+  it('keys the responses by status code', () => {
     type PetGetResponses = PetStore<'/pet/{petId}', 'get'>['responses']
 
     expectTypeOf<PetGetResponses>().toHaveProperty(200)
@@ -58,20 +58,20 @@ describe('PetStore type helper', () => {
     expectTypeOf<PetCreateResponses>().toHaveProperty(405)
   })
 
-  it('preserves path and method metadata', () => {
+  it('preserves the path and the method as literals', () => {
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['fullPath']>().toEqualTypeOf<'/pet/{petId}'>()
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['method']>().toEqualTypeOf<'get'>()
   })
 
-  it('provides access to full OpenAPI operation object', () => {
+  it('exposes the raw operation object', () => {
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['operation']>().toHaveProperty('parameters')
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['operation']>().toHaveProperty('responses')
   })
 })
 
 // eslint-disable-next-line test/prefer-lowercase-title
-describe('PetStoreModel type helper', () => {
-  it('extracts correct schema model types', () => {
+describe('PetStoreModel', () => {
+  it('extracts a schema model by name', () => {
     expectTypeOf<PetStoreModel<'Pet'>>().toEqualTypeOf<Components['schemas']['Pet']>()
     expectTypeOf<PetStoreModel<'Tag'>>().toEqualTypeOf<Components['schemas']['Tag']>()
     expectTypeOf<PetStoreModel<'Order'>>().toEqualTypeOf<Components['schemas']['Order']>()

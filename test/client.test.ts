@@ -21,12 +21,7 @@ describe('createClient', () => {
     }
   }) satisfies MethodsExtensionBuilder
 
-  it('throws when called without a handler extension', () => {
-    const client = createClient()
-    expect(() => (client as unknown as () => void)()).toThrow(TypeError)
-  })
-
-  it('stores default options in client instance', () => {
+  it('stores the default options on the client', () => {
     const options = {
       baseURL: 'http://example.com',
     }
@@ -34,7 +29,15 @@ describe('createClient', () => {
     expect(client.defaultOptions).toEqual(options)
   })
 
-  it('extends client functionality with extension methods', () => {
+  it('throws when called without a handler extension', () => {
+    const client = createClient()
+    expect(() => (client as unknown as () => void)()).toThrow(TypeError)
+
+    const withMethodsOnly = client.with(extensionWithRequestMethod)
+    expect(() => (withMethodsOnly as unknown as () => void)()).toThrow(/handler extension/)
+  })
+
+  it('passes the client to the extension builder', () => {
     const client = createClient()
     const mockedExtension = vi.fn(extension)
     const extendedClient = client.with(mockedExtension)
@@ -42,14 +45,14 @@ describe('createClient', () => {
     expect(extendedClient()).toBeInstanceOf(Response)
   })
 
-  it('adds extension properties to extended client', () => {
+  it('exposes the properties of a handler extension on the client', () => {
     const client = createClient()
     const extendedClient = client.with(extension)
     expect(extendedClient()).toBeInstanceOf(Response)
     expect(extendedClient.foo).toBe('bar')
   })
 
-  it('preserves default options after extension', () => {
+  it('preserves the default options after `with`', () => {
     const options = {
       baseURL: 'http://example.com',
     }
@@ -58,7 +61,7 @@ describe('createClient', () => {
     expect(extendedClient.defaultOptions).toEqual(options)
   })
 
-  it('supports multiple extensions combined via chained with()', () => {
+  it('exposes the methods of every extension in a `with` chain', () => {
     const client = createClient()
     const mockedExtension = vi.fn(extension)
     const extendedClient = client
@@ -79,7 +82,7 @@ describe('createClient', () => {
     expect(extendedClient.method()).toBe('second')
   })
 
-  it('preserves TypeScript type safety with extensions', () => {
+  it('keeps the declared signature of an extension method', () => {
     const client = createClient()
     const extendedClient = client.with(() => ({
       typedMethod: (arg: number) => arg.toString(),
