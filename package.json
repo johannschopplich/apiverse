@@ -105,7 +105,6 @@
     "ofetch": "^1.5.1",
     "openapi-typescript-helpers": "0.1.0",
     "scule": "^1.3.0",
-    "ufo": "^1.6.4",
     "utilful": "^3.0.2"
   },
   "devDependencies": {

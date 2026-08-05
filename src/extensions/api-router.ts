@@ -1,7 +1,7 @@
 import type { FetchOptions, MappedResponseType, ResponseType } from 'ofetch'
 import type { ApiClient } from '../client.ts'
 import { ofetch } from 'ofetch'
-import { joinURL } from 'ufo'
+import { joinURL } from 'utilful/path'
 
 const PAYLOAD_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'] as const
 const SUPPORTED_METHODS = new Set(['GET', ...PAYLOAD_METHODS])
