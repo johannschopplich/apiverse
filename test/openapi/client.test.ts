@@ -1,8 +1,7 @@
 import type { components } from 'apiful/schema/petStore'
-import type { FetchContext } from 'ofetch'
 import { ofetch } from 'ofetch'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createOpenAPIClient, fetchRequestInterceptor, resolvePathParams } from '../../src/openapi/client'
+import { createOpenAPIClient, resolvePathParams } from '../../src/openapi/client'
 
 vi.mock('ofetch', () => ({
   ofetch: {
@@ -11,49 +10,28 @@ vi.mock('ofetch', () => ({
 }))
 
 describe('resolvePathParams', () => {
-  it.each([
-    ['no params', '/users', undefined, '/users'],
-    ['undefined params on templated path', '/users/{id}', undefined, '/users/{id}'],
-    ['empty params object', '/users/{id}', {}, '/users/{id}'],
-    ['single parameter', '/users/{id}', { id: '123' }, '/users/123'],
-    ['multiple parameters', '/users/{userId}/posts/{postId}', { userId: '123', postId: '456' }, '/users/123/posts/456'],
-    ['encodes @ character', '/users/{id}', { id: 'user@example.com' }, '/users/user%40example.com'],
-    ['encodes space', '/search/{query}', { query: 'hello world' }, '/search/hello%20world'],
-    ['encodes slash', '/files/{path}', { path: 'folder/file.txt' }, '/files/folder%2Ffile.txt'],
-    ['encodes complex punctuation', '/items/{id}', { id: '!@#$%^&*()' }, '/items/!%40%23%24%25%5E%26*()'],
-    ['coerces number to string', '/users/{id}', { id: 123 as unknown as string }, '/users/123'],
-    ['coerces boolean to string', '/items/{active}', { active: true as unknown as string }, '/items/true'],
-    ['coerces null to string', '/data/{value}', { value: null as unknown as string }, '/data/null'],
-    ['ignores extra parameters', '/users/{id}', { id: '123', extra: 'ignored' }, '/users/123'],
-    ['replaces repeated parameter names', '/api/{version}/users/{version}', { version: 'v1' }, '/api/v1/users/v1'],
-    ['empty string parameter value', '/users/{id}', { id: '' }, '/users/'],
-  ])('%s', (_name, path, params, expected) => {
-    expect(resolvePathParams(path, params as Record<string, string> | undefined)).toBe(expected)
-  })
-})
-
-describe('fetchRequestInterceptor', () => {
-  it('resolves path parameters from options.path into ctx.request', () => {
-    const ctx = {
-      request: '/users/{id}',
-      options: { path: { id: '123' } },
-    } as unknown as FetchContext
-
-    fetchRequestInterceptor(ctx)
-    expect(ctx.request).toBe('/users/123')
-  })
-
-  it('leaves request unchanged when path options are absent or empty', () => {
-    const cases = [
-      { request: '/users', options: {} },
-      { request: '/users/{id}', options: { path: {} } },
-    ]
-    for (const raw of cases) {
-      const ctx = raw as unknown as FetchContext
-      const original = ctx.request
-      fetchRequestInterceptor(ctx)
-      expect(ctx.request).toBe(original)
-    }
+  it.each<{ path: string, params?: Record<string, string>, out?: string }>([
+    // Nothing to replace
+    { path: '/users', params: undefined },
+    { path: '/users/{id}', params: undefined },
+    { path: '/users/{id}', params: {} },
+    // Replacement
+    { path: '/users/{id}', params: { id: '123' }, out: '/users/123' },
+    { path: '/users/{userId}/posts/{postId}', params: { userId: '123', postId: '456' }, out: '/users/123/posts/456' },
+    { path: '/api/{version}/users/{version}', params: { version: 'v1' }, out: '/api/v1/users/v1' },
+    { path: '/users/{id}', params: { id: '123', extra: 'ignored' }, out: '/users/123' },
+    { path: '/users/{id}', params: { id: '' }, out: '/users/' },
+    // Percent-encoding
+    { path: '/users/{id}', params: { id: 'user@example.com' }, out: '/users/user%40example.com' },
+    { path: '/search/{query}', params: { query: 'hello world' }, out: '/search/hello%20world' },
+    { path: '/files/{path}', params: { path: 'folder/file.txt' }, out: '/files/folder%2Ffile.txt' },
+    { path: '/items/{id}', params: { id: '!@#$%^&*()' }, out: '/items/!%40%23%24%25%5E%26*()' },
+    // Coercion of a value the OpenAPI types allow but the URL cannot carry
+    { path: '/users/{id}', params: { id: 123 as unknown as string }, out: '/users/123' },
+    { path: '/items/{active}', params: { active: true as unknown as string }, out: '/items/true' },
+    { path: '/data/{value}', params: { value: null as unknown as string }, out: '/data/null' },
+  ])('resolves $path with $params', ({ path, params, out = path }) => {
+    expect(resolvePathParams(path, params)).toBe(out)
   })
 })
 
@@ -76,18 +54,14 @@ describe('createOpenAPIClient', () => {
     expect(mockCreate).toHaveBeenCalledWith(options)
   })
 
-  it('resolves options from a factory function and memoizes the result', () => {
-    const options = { baseURL: 'https://api.example.com' }
-    const optionsFn = vi.fn().mockReturnValue(options)
-    const client = createOpenAPIClient<'petStore'>(optionsFn)
-
+  it('creates the ofetch instance once, not per request', () => {
     mockFetch.mockResolvedValue({})
-    void client('/store/inventory')
+    const client = createOpenAPIClient<'petStore'>({ baseURL: 'https://api.example.com' })
+
     void client('/store/inventory')
     void client('/store/inventory')
 
-    expect(optionsFn).toHaveBeenCalledOnce()
-    expect(mockCreate).toHaveBeenCalledWith(options)
+    expect(mockCreate).toHaveBeenCalledOnce()
   })
 
   it('resolves path parameters and forwards options to the underlying fetch', async () => {
@@ -102,10 +76,7 @@ describe('createOpenAPIClient', () => {
     const client = createOpenAPIClient<'petStore'>({ baseURL: 'https://petstore3.swagger.io/api/v3' })
     await client('/pet/{petId}', { path: { petId: 123 }, method: 'GET' })
 
-    expect(mockFetch).toHaveBeenCalledWith('/pet/123', {
-      path: { petId: 123 },
-      method: 'GET',
-    })
+    expect(mockFetch).toHaveBeenCalledWith('/pet/123', { method: 'GET' })
   })
 
   it('forwards body and query options unchanged', async () => {
@@ -124,7 +95,7 @@ describe('createOpenAPIClient', () => {
     mockFetch.mockResolvedValue({})
     const client = createOpenAPIClient<'petStore'>({ baseURL: 'https://petstore3.swagger.io/api/v3' })
     await client('/store/inventory')
-    expect(mockFetch).toHaveBeenCalledWith('/store/inventory', undefined)
+    expect(mockFetch).toHaveBeenCalledWith('/store/inventory', {})
   })
 
   it('returns the fetch result unchanged', async () => {

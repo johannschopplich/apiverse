@@ -1,5 +1,5 @@
 import type { OpenAPISchemaRepository } from 'apiful/schema'
-import type { FetchContext, FetchOptions } from 'ofetch'
+import type { $Fetch, FetchOptions } from 'ofetch'
 import type { OpenAPIClient } from './types.ts'
 import { ofetch } from 'ofetch'
 
@@ -7,19 +7,28 @@ export type SchemaPaths<K> = K extends keyof OpenAPISchemaRepository
   ? OpenAPISchemaRepository[K]
   : Record<string, never>
 
+interface OpenAPIRequestOptions extends FetchOptions {
+  path?: Record<string, string>
+}
+
 export function createOpenAPIClient<
   const Schema extends string,
   Paths = SchemaPaths<Schema>,
 >(
-  defaultOptions: FetchOptions | (() => FetchOptions) = {},
+  defaultOptions: FetchOptions = {},
 ): OpenAPIClient<Paths> {
-  const client = ofetch.create(typeof defaultOptions === 'function' ? defaultOptions() : defaultOptions)
+  return createOpenAPIHandler<Paths>(ofetch.create(defaultOptions))
+}
 
-  return (url, options) => client(
-    // @ts-expect-error: `path` is added by OpenAPI types, not part of ofetch's `FetchOptions`.
-    resolvePathParams(url, options?.path),
-    options as Record<string, any>,
-  )
+/**
+ * Wraps a fetch function as an OpenAPI client, interpolating the `path`
+ * parameters into the URL rather than passing them on as fetch options.
+ */
+export function createOpenAPIHandler<Paths>(fetchFn: $Fetch): OpenAPIClient<Paths> {
+  return ((url: string, options?: OpenAPIRequestOptions) => {
+    const { path: pathParams, ...fetchOptions } = options ?? {}
+    return fetchFn(resolvePathParams(url, pathParams), fetchOptions)
+  }) as OpenAPIClient<Paths>
 }
 
 export function resolvePathParams(path: string, params?: Record<string, string>): string {
@@ -29,12 +38,4 @@ export function resolvePathParams(path: string, params?: Record<string, string>)
   }
 
   return path
-}
-
-export function fetchRequestInterceptor(ctx: FetchContext): void {
-  ctx.request = resolvePathParams(
-    ctx.request as string,
-    // @ts-expect-error: `path` is added by OpenAPI types, not part of ofetch's `FetchOptions`.
-    ctx.options.path,
-  )
 }

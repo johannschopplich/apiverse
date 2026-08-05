@@ -27,7 +27,7 @@ describe('OpenAPIBuilder adapter', () => {
     vi.clearAllMocks()
   })
 
-  it('returns function that extends ApiClient with OpenAPI types', () => {
+  it('takes an ApiClient and returns an OpenAPIClient', () => {
     const builder = OpenAPIBuilder<'petStore'>()
     expectTypeOf(builder).toBeFunction()
     expectTypeOf(builder).parameter(0).toEqualTypeOf<ApiClient>()
@@ -37,7 +37,7 @@ describe('OpenAPIBuilder adapter', () => {
     expectTypeOf(openApiClient).toEqualTypeOf<OpenAPIClient<SchemaPaths<'petStore'>>>()
   })
 
-  it('creates typed client for existing schemas', () => {
+  it('types the client from the schema name it was given', () => {
     const petStoreBuilder = OpenAPIBuilder<'petStore'>()
     const client = {} as ApiClient
     const petStoreClient = petStoreBuilder(client)
@@ -50,7 +50,7 @@ describe('OpenAPIBuilder adapter', () => {
     expectTypeOf(secondPetStoreClient).toEqualTypeOf<OpenAPIClient<OpenAPISchemaRepository['petStore']>>()
   })
 
-  it('handles non-existing schema with empty type', () => {
+  it('types an unknown schema name as an empty paths record', () => {
     const nonExistentBuilder = OpenAPIBuilder<'nonExistent'>()
     const client = {} as ApiClient
     const nonExistentClient = nonExistentBuilder(client)
@@ -58,7 +58,7 @@ describe('OpenAPIBuilder adapter', () => {
     expectTypeOf(nonExistentClient).toEqualTypeOf<OpenAPIClient<Record<string, never>>>()
   })
 
-  it('provides typed methods for API operations', () => {
+  it('types the response by path and method', () => {
     const client = {} as ApiClient
     const petStoreClient = OpenAPIBuilder<'petStore'>()(client)
 
@@ -89,7 +89,7 @@ describe('OpenAPIBuilder adapter', () => {
 
   it.each([
     {
-      name: 'no options (inventory)',
+      name: 'a request without options',
       path: '/store/inventory',
       options: undefined,
       expectedUrl: '/store/inventory',
@@ -105,7 +105,7 @@ describe('OpenAPIBuilder adapter', () => {
       mockResponse: [samplePet],
     },
     {
-      name: 'path parameters (resolves template)',
+      name: 'path parameters as a resolved template',
       path: '/pet/{petId}',
       options: { path: { petId: 123 } },
       expectedUrl: '/pet/123',
@@ -113,7 +113,7 @@ describe('OpenAPIBuilder adapter', () => {
       mockResponse: { ...samplePet, id: 123 },
     },
     {
-      name: 'method and body',
+      name: 'a method and body',
       path: '/pet',
       options: { method: 'POST' as const, body: samplePet },
       expectedUrl: '/pet',
@@ -132,7 +132,7 @@ describe('OpenAPIBuilder adapter', () => {
     expect(mockFetch).toHaveBeenCalledWith(expectedUrl, expectedOptions)
   })
 
-  it('handles error responses', async () => {
+  it('rejects when the underlying fetch rejects', async () => {
     mockFetch.mockRejectedValue(new Error('404 Not Found'))
 
     const client = createClient({ baseURL: 'https://petstore3.swagger.io/api/v3' })
