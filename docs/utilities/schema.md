@@ -11,7 +11,7 @@ The foundation of the validation system is the `Validator<T>` interface, which p
 ```ts
 interface Validator<T = unknown> {
   /**
-   * Optional. Validates that the structure of a value matches this schema,
+   * Validates that the structure of a value matches this schema,
    * and returns a typed version of the value if it does.
    */
   readonly validate?: (value: unknown) => ValidationResult<T>
