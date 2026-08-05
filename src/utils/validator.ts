@@ -13,7 +13,7 @@ export interface Validator<T = unknown> {
   [validatorSymbol]: true
 
   /**
-   * Optional. Validates that the structure of a value matches this schema,
+   * Validates that the structure of a value matches this schema,
    * and returns a typed version of the value if it does.
    */
   readonly validate?: (value: unknown) => ValidationResult<T>

@@ -162,7 +162,6 @@ function mergeObjectSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinit
     }
   }
 
-  // Use intersection for required properties: only require properties that are required in **all** schemas.
   const requiredProperties = schemasWithProperties.length > 0
     ? Array.from(propertySchemas.keys()).filter((key) => {
         return schemasWithProperties.every(
@@ -184,7 +183,6 @@ function mergeObjectSchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinit
   }
 }
 
-/** Merges multiple array schemas by merging their item schemas. */
 function mergeArraySchemas(schemas: JSONSchema4[], options: ResolvedTypeDefinitionOptions): JSONSchema4 {
   const itemSchemas = schemas
     .map(schema => schema.items)

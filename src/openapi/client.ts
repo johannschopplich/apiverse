@@ -16,7 +16,7 @@ export function createOpenAPIClient<
   const client = ofetch.create(typeof defaultOptions === 'function' ? defaultOptions() : defaultOptions)
 
   return (url, options) => client(
-    // @ts-expect-error: `path` is added by OpenAPI types, not part of ofetch's FetchOptions
+    // @ts-expect-error: `path` is added by OpenAPI types, not part of ofetch's `FetchOptions`.
     resolvePathParams(url, options?.path),
     options as Record<string, any>,
   )
@@ -34,7 +34,7 @@ export function resolvePathParams(path: string, params?: Record<string, string>)
 export function fetchRequestInterceptor(ctx: FetchContext): void {
   ctx.request = resolvePathParams(
     ctx.request as string,
-    // @ts-expect-error: `path` is added by OpenAPI types, not part of ofetch's FetchOptions
+    // @ts-expect-error: `path` is added by OpenAPI types, not part of ofetch's `FetchOptions`.
     ctx.options.path,
   )
 }

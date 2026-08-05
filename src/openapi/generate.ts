@@ -48,7 +48,7 @@ export async function generateDTSModules(
     .map((id) => {
       return [`
 /**
- * OpenAPI endpoint type helper for the ${pascalCase(id)} API
+ * OpenAPI endpoint type helper for the ${pascalCase(id)} API.
  *
  * @example
  * // Get path parameters for retrieving a user by ID:
@@ -73,23 +73,20 @@ export type ${pascalCase(id)}<
   Path extends keyof ${pascalCase(id)}Paths,
   Method extends PathMethods<${pascalCase(id)}Paths, Path> = PathMethods<${pascalCase(id)}Paths, Path> extends string ? PathMethods<${pascalCase(id)}Paths, Path> : never
 > = {
-  /** Path parameters for this endpoint */
   path: ${pascalCase(id)}Paths[Path][Method] extends { parameters?: { path?: infer P } } ? P : Record<string, never>
 
-  /** Query parameters for this endpoint */
   query: ${pascalCase(id)}Paths[Path][Method] extends { parameters?: { query?: infer Q } } ? Q : Record<string, never>
 
-  /** Request body for this endpoint */
   request: ${pascalCase(id)}Paths[Path][Method] extends { requestBody?: { content: { 'application/json': infer R } } } ? R : Record<string, never>
 
-  /** Success response for this endpoint (defaults to 200 status code) */
+  /** Response body for status 200. */
   response: ${pascalCase(id)}Paths[Path][Method] extends { responses: infer R }
     ? 200 extends keyof R
       ? R[200] extends { content: { 'application/json': infer S } } ? S : Record<string, never>
       : Record<string, never>
     : Record<string, never>
 
-  /** All possible responses for this endpoint by status code */
+  /** Response bodies keyed by status code. */
   responses: ${pascalCase(id)}Paths[Path][Method] extends { responses: infer T }
     ? {
         [Status in keyof T]:
@@ -99,40 +96,28 @@ export type ${pascalCase(id)}<
       }
     : Record<string, never>
 
-  /** Full path with typed parameters for this endpoint (useful for route builders) */
+  /** Path literal including its parameter placeholders, for route builders to consume. */
   fullPath: Path
 
-  /** HTTP method for this endpoint */
   method: Method
 
-  /**
-   * Full operation object for this endpoint
-   *
-   * @remarks
-   * Useful for accessing additional metadata, such as tags or security requirements.
-   */
+  /** Raw operation object, carrying metadata such as tags and security requirements. */
   operation: ${pascalCase(id)}Paths[Path][Method]
 }
 
 /**
- * Type helper to list all available paths of the ${pascalCase(id)} API
- *
  * @example
  * type AvailablePaths = ${pascalCase(id)}ApiPaths // Returns literal union of all available paths
  */
 export type ${pascalCase(id)}ApiPaths = keyof ${pascalCase(id)}Paths
 
 /**
- * Type helper to get available methods for a specific path of the ${pascalCase(id)} API
- *
  * @example
  * type UserMethods = ${pascalCase(id)}ApiMethods<'/users/{id}'> // Returns 'get' | 'put' | 'delete' etc.
  */
 export type ${pascalCase(id)}ApiMethods<P extends keyof ${pascalCase(id)}Paths> = PathMethods<${pascalCase(id)}Paths, P>
 
 /**
- * Type helper to extract schema models from the ${pascalCase(id)} API
- *
  * @example
  * type Pet = ${pascalCase(id)}Model<'Pet'> // Get the Pet schema model
  * type User = ${pascalCase(id)}Model<'User'> // Get the User schema model
@@ -157,12 +142,10 @@ ${normalizeIndentation(types).trimEnd()}
 declare module 'apiful/schema' {
 ${servicePathImports}
 
-  // Augment the schema repository interface with all service schemas
   interface OpenAPISchemaRepository {
 ${schemaRepositoryEntries}
   }
 
-  // Type helpers for schema paths and methods
   type NonNeverKeys<T> = { [K in keyof T]: T[K] extends never ? never : K }[keyof T]
   type PathMethods<T, P extends keyof T> = Exclude<NonNeverKeys<T[P]>, 'parameters'>
 

@@ -140,7 +140,7 @@ describe('OpenAPIBuilder adapter', () => {
 
     await expect(() => {
       return client(
-        // @ts-expect-error: Path not defined in OpenAPI schema
+        // @ts-expect-error: Path not defined in the OpenAPI schema.
         '/invalid/endpoint',
       )
     }).rejects.toThrow()
