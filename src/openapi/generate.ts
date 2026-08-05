@@ -6,7 +6,8 @@ import { pathToFileURL } from 'node:url'
 import { pascalCase } from 'scule'
 import { defu } from 'utilful'
 
-export class SchemaGenerationError extends Error {}
+/** The `//` is required, so a Windows drive letter is not read as a scheme. */
+const URL_SCHEME_RE = /^[a-z][\w+.-]*:\/\//i
 
 export interface DTSModuleOutput {
   entry: string
@@ -18,6 +19,8 @@ export interface GenerateOptions {
   /** Directory a relative schema path resolves against. Defaults to the current working directory. */
   rootDir?: string
 }
+
+export class SchemaGenerationError extends Error {}
 
 export async function generateDTS(
   services: Record<string, ServiceOptions>,
@@ -200,11 +203,10 @@ async function resolveSchema(
     return await schema()
 
   if (typeof schema === 'string') {
-    if (/^https?:\/\//i.test(schema))
-      return schema
-
-    if (schema.startsWith('file://'))
-      return new URL(schema)
+    if (URL_SCHEME_RE.test(schema)) {
+      // openapi-typescript reads a `file:` URL from disk and fetches every other one.
+      return schema.startsWith('file://') ? new URL(schema) : schema
+    }
 
     const resolvedPath = path.isAbsolute(schema)
       ? schema

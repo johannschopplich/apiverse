@@ -1,5 +1,6 @@
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { runCli, useTemporaryDirectories } from './utils.ts'
 
@@ -41,6 +42,21 @@ describe('apiful CLI', () => {
 
       expect(exitCode).toBeUndefined()
       expect(types).toContain(`declare module 'apiful/schema/petStore'`)
+      expect(types).toContain('/pets/{id}')
+    })
+
+    it('reads a schema given as a file URL', async () => {
+      const directory = createDirectory({ 'schemas/pet-store.json': SCHEMA })
+      const schemaUrl = pathToFileURL(path.join(directory, 'schemas/pet-store.json')).href
+      await fsp.writeFile(
+        path.join(directory, 'apiful.config.ts'),
+        `export default { services: { petStore: { schema: ${JSON.stringify(schemaUrl)} } } }\n`,
+      )
+
+      const { exitCode } = await runCli(['generate', `--root=${directory}`])
+      const types = await fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8')
+
+      expect(exitCode).toBeUndefined()
       expect(types).toContain('/pets/{id}')
     })
 
