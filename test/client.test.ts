@@ -21,6 +21,11 @@ describe('createClient', () => {
     }
   }) satisfies MethodsExtensionBuilder
 
+  it('throws when called without a handler extension', () => {
+    const client = createClient()
+    expect(() => (client as unknown as () => void)()).toThrow(TypeError)
+  })
+
   it('stores default options in client instance', () => {
     const options = {
       baseURL: 'http://example.com',

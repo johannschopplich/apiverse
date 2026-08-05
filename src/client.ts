@@ -13,7 +13,7 @@ export type MethodsExtensionBuilder = (client: ApiClient) => MethodsExtension
 export type ClientOptions<BaseURL extends string = string> = Omit<FetchOptions, 'baseURL'> & { baseURL?: BaseURL }
 
 export interface ApiClient<BaseURL extends string = string> extends Function {
-  _handler: Fn
+  _handler?: Fn
   _extensions: Record<PropertyKey, unknown>
   defaultOptions: ClientOptions<BaseURL>
   with: <Extension extends ApiExtension>(
@@ -24,7 +24,9 @@ export interface ApiClient<BaseURL extends string = string> extends Function {
 export function createClient<const BaseURL extends string = '/'>(
   defaultOptions: ClientOptions<BaseURL> = {},
 ): ApiClient<BaseURL> {
-  const client = (() => {}) as unknown as ApiClient<BaseURL>
+  const client = (() => {
+    throw new TypeError('This client cannot make requests. Add a handler extension, such as `createClient().with(ofetchBuilder())`.')
+  }) as unknown as ApiClient<BaseURL>
 
   client.defaultOptions = defaultOptions
   client._extensions = Object.create(null)
