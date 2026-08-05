@@ -2,8 +2,6 @@
 
 # APIful
 
-[![npm version][npm-version-src]][npm-version-href]
-
 APIful provides a unified interface to manage all your API interactions by setting up a client with default fetch options, such as the base API URL and headers. Extensions add a variety of features to the client to match your favorite flavor of API management.
 
 You can use one of the [built-in extensions](https://apiful.land/guide/using-extensions#built-in-extensions) to get started right away, or create your own [custom extension](https://apiful.land/guide/custom-extensions) to meet your specific needs.
@@ -162,8 +160,3 @@ If you have specific requirements that aren't covered by the included extensions
 Made with 💛
 
 Published under [MIT License](./LICENSE).
-
-<!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/apiful?style=flat
-[npm-version-href]: https://npmjs.com/package/apiful
