@@ -7,6 +7,9 @@ This built-in extension provides complete type safety for API calls based on Ope
 
 To use this extension, APIful must first generate TypeScript definitions from your OpenAPI schema files.
 
+> [!TIP]
+> Reach for this extension when the client also carries other extensions. For a client that only talks to one OpenAPI service, [`createOpenAPIClient`](/reference/create-openapi-client) is the shorter road to the same types.
+
 ## Prerequisites
 
 To keep the package size small, APIful doesn't include `openapi-typescript` as a dependency. Install the package using your preferred package manager:
@@ -50,7 +53,7 @@ Then, run the [`generate`](/guide/cli) command in your terminal to generate the 
 npx apiful generate
 ```
 
-The type generation process uses `openapi-typescript` to parse your OpenAPI schema and generates TypeScript definitions that are then augmented into APIful's type system through module declaration merging. This approach provides compile-time type safety without any runtime overhead – your generated types exist only at build time and are completely tree-shaken from production bundles. For large schemas with hundreds of endpoints, generation typically takes 2-5 seconds and produces highly optimized TypeScript definitions with template literal types for path parameters and conditional types for optional fields.
+`openapi-typescript` parses the schema, and APIful declares the result as a module that merges into `apiful/schema`. The output is a declaration file, so nothing of it reaches your bundle.
 
 Done! You can now use the `OpenAPIBuilder` extension to create a type-safe API client. Make sure you pass the **service name** to it as a generic parameter, such as `OpenAPIBuilder<'petStore'>()`. Follow the next chapter for more details.
 
@@ -81,7 +84,7 @@ const userResponse = await petStore('/user/{username}', {
 })
 ```
 
-The response returned by the API call on the left is typed as follows:
+The response is typed from the schema:
 
 ```ts
 declare const userResponse: {

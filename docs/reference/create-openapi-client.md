@@ -1,15 +1,8 @@
 # `createOpenAPIClient`
 
-Creates a type-safe OpenAPI client directly without using the APIful extension system. This is a lightweight alternative to using [`createClient`](/reference/create-client) with `OpenAPIBuilder` when you want to bypass the extensible API that APIful provides.
+Creates a type-safe OpenAPI client from a generated schema. This is the direct way to call an OpenAPI service, and the one to reach for by default.
 
-## When to Use
-
-Use `createOpenAPIClient` when you:
-
-- Want a direct, lightweight OpenAPI client
-- Don't need the extensibility features of the main APIful client system
-- Prefer a simpler API without the `.with()` extension pattern
-- Want to avoid the additional abstraction layer
+Use [`createClient`](/reference/create-client) with [`OpenAPIBuilder`](/extensions/openapi) instead when the same client also has to carry other extensions. Both give you the same types from the same schema – the builder adds the `.with()` chain on top.
 
 ## Prerequisites
 
@@ -20,7 +13,6 @@ Same as the [`OpenAPIBuilder`](/extensions/openapi#prerequisites) extension – 
 ```ts
 import { createOpenAPIClient } from 'apiful/openapi/client'
 
-// Create the client directly
 const petStore = createOpenAPIClient<'petStore'>({
   baseURL: 'https://petstore3.swagger.io/api/v3',
   headers: {
@@ -28,22 +20,11 @@ const petStore = createOpenAPIClient<'petStore'>({
   },
 })
 
-// Use it like the OpenAPIBuilder extension
 const userResponse = await petStore('/user/{username}', {
   method: 'GET',
   path: { username: 'user1' },
 })
 ```
-
-## Comparison with `createClient` + `OpenAPIBuilder`
-
-| Feature | `createOpenAPIClient` | `createClient` + `OpenAPIBuilder` |
-|---------|----------------------|-----------------------------------|
-| Extensibility | ❌ No extension system | ✅ Full extension support |
-| Bundle size | ✅ Smaller footprint | ❌ Includes extension system |
-| Type safety | ✅ Full OpenAPI types | ✅ Full OpenAPI types |
-| API complexity | ✅ Simple, direct API | ❌ More complex setup |
-| Customization | ❌ Limited to fetch options | ✅ Unlimited via extensions |
 
 ## Type Definition
 
@@ -52,22 +33,35 @@ declare function createOpenAPIClient<
   const Schema extends string,
   Paths = SchemaPaths<Schema>,
 >(
-  defaultOptions?: FetchOptions | (() => FetchOptions)
+  defaultOptions?: FetchOptions
 ): OpenAPIClient<Paths>
 ```
 
 > [!NOTE]
-> The generic `Paths` parameter should be the service name from your `apiful.config.ts` file, same as with `OpenAPIBuilder`.
+> `Schema` is the service name from your `apiful.config.ts` file, same as with `OpenAPIBuilder`. `Paths` is derived from it and is not meant to be passed.
 
-## Dynamic Options
+## Options Resolved per Request
 
-You can also provide a function that returns options, useful for dynamic configuration:
+The default options are read once, when the client is created. For a value that changes between requests – a rotating token, for example – use ofetch's `onRequest` hook, which runs on every call:
 
 ```ts
-const client = createOpenAPIClient<'petStore'>(() => ({
-  baseURL: process.env.API_BASE_URL,
-  headers: {
-    Authorization: `Bearer ${getAuthToken()}`,
+const client = createOpenAPIClient<'petStore'>({
+  baseURL: 'https://petstore3.swagger.io/api/v3',
+  onRequest({ options }) {
+    options.headers.set('Authorization', `Bearer ${getAuthToken()}`)
   },
-}))
+})
 ```
+
+## Bringing Your Own Fetch
+
+`createOpenAPIClient` builds its fetch function with `ofetch.create`. To supply one yourself – an instance you already configured, or a stub in a test – wrap it with `createOpenAPIHandler`, which is what this function and `OpenAPIBuilder` both use underneath:
+
+```ts
+import type { SchemaPaths } from 'apiful/openapi'
+import { createOpenAPIHandler } from 'apiful/openapi/client'
+
+const petStore = createOpenAPIHandler<SchemaPaths<'petStore'>>(myFetch)
+```
+
+It resolves the `path` parameters into the URL and passes every other option on to the fetch function unchanged.

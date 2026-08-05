@@ -4,6 +4,7 @@
 
 - [`createClient`](/reference/create-client)
 - [`createOpenAPIClient`](/reference/create-openapi-client)
+- [`defineApifulConfig`](/reference/define-apiful-config)
 
 ## Types
 
