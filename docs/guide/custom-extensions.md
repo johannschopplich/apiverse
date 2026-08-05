@@ -4,7 +4,10 @@ APIful's true power lies in its extensibility. You can chain multiple extensions
 
 ## Extension Types
 
-Before creating your first extension, make sure you understand the [two types of extensions](/guide/extension-types) available: handler extensions (callable signature) and methods extensions (additional methods).
+An extension builder is a function that takes the [`ApiClient`](/reference/api-client) and returns one of two kinds of extension:
+
+- A [handler extension](#handler-extension) returns a function, which becomes the client's call signature. One per client – see [how extensions work](/guide/using-extensions#how-extensions-work).
+- A [methods extension](#methods-extension) returns an object, whose entries become methods on the client. As many as you like.
 
 > [!IMPORTANT]
 > Use `satisfies HandlerExtensionBuilder` or `satisfies MethodsExtensionBuilder` instead of declaring extension variables directly with these types. The `satisfies` operator is crucial here – it validates that your extension conforms to the expected interface while preserving the exact return type for downstream type inference, ensuring seamless integration with other extensions.
