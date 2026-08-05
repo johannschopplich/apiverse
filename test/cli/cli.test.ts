@@ -2,6 +2,7 @@ import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { GENERATED_FILE_HEADER } from '../../src/constants.ts'
 import { runCli, useTemporaryDirectories } from './utils.ts'
 
 const SCHEMA = JSON.stringify({
@@ -70,6 +71,53 @@ describe('apiful CLI', () => {
       expect(exitCode).toBe(1)
       expect(stderr).toContain('petStore')
       await expect(fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8')).rejects.toThrow()
+    })
+
+    it('writes an entry file referencing one fragment per service with --outdir', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+      })
+
+      const { exitCode } = await runCli(['generate', `--root=${directory}`, '--outdir=generated'])
+      const entry = await fsp.readFile(path.join(directory, 'generated/apiful.d.ts'), 'utf-8')
+      const fragment = await fsp.readFile(path.join(directory, 'generated/schema/petStore.d.ts'), 'utf-8')
+
+      expect(exitCode).toBeUndefined()
+      expect(entry).toContain('/// <reference path="schema/petStore.d.ts" />')
+      expect(fragment).toContain(`declare module 'apiful/schema/petStore'`)
+    })
+
+    it('keeps the files it did not write in the --outdir directory', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+        'types/handwritten.ts': 'export const keep = true\n',
+      })
+
+      await runCli(['generate', `--root=${directory}`, '--outdir=types'])
+
+      await expect(fsp.readFile(path.join(directory, 'types/handwritten.ts'), 'utf-8'))
+        .resolves
+        .toContain('keep')
+    })
+
+    it('deletes the fragment of a service the configuration no longer lists', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+        'generated/schema/removedService.d.ts': `${GENERATED_FILE_HEADER}declare module 'apiful/schema/removedService' {}\n`,
+        'generated/schema/handwritten.d.ts': `declare module 'my-own' {}\n`,
+      })
+
+      await runCli(['generate', `--root=${directory}`, '--outdir=generated'])
+
+      await expect(fsp.readFile(path.join(directory, 'generated/schema/removedService.d.ts'), 'utf-8'))
+        .rejects
+        .toThrow()
+      await expect(fsp.readFile(path.join(directory, 'generated/schema/handwritten.d.ts'), 'utf-8'))
+        .resolves
+        .toContain('my-own')
     })
   })
 })

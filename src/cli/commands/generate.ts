@@ -79,11 +79,11 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
     const entryFilePath = path.join(outputDir, DEFAULT_OUTFILE)
     const fragmentDir = path.join(outputDir, 'schema')
 
-    await fsp.rm(outputDir, { recursive: true, force: true })
-
     await fsp.mkdir(outputDir, { recursive: true })
     if (fragments.length > 0)
       await fsp.mkdir(fragmentDir, { recursive: true })
+
+    await removeStaleFragments(fragmentDir, fragments.map(([id]) => `${id}.d.ts`))
 
     const references = fragments
       .map(([id]) => {
@@ -106,7 +106,7 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
       }),
     )
 
-    const relativeOutdir = path.relative(rootDir, outputDir)
+    const relativeOutdir = path.relative(rootDir, outputDir) || '.'
     log.success(`OpenAPI types generated in \`${relativeOutdir}/\` (entry + ${fragments.length} ${servicesLabel})`)
   },
 }))
@@ -115,4 +115,25 @@ export default command
 
 function toReferencePath(from: string, to: string): string {
   return path.relative(from, to).split(path.sep).join('/')
+}
+
+/**
+ * Deletes the fragments of services the configuration no longer lists. Only a
+ * file carrying the generated header is removed, since `--outdir` may point at
+ * a directory whose other contents belong to the project.
+ */
+async function removeStaleFragments(fragmentDir: string, currentFileNames: string[]): Promise<void> {
+  const entries = await fsp.readdir(fragmentDir).catch(() => [])
+  const current = new Set(currentFileNames)
+
+  await Promise.all(
+    entries
+      .filter(name => name.endsWith('.d.ts') && !current.has(name))
+      .map(async (name) => {
+        const filePath = path.join(fragmentDir, name)
+        const contents = await fsp.readFile(filePath, 'utf-8').catch(() => '')
+        if (contents.startsWith(GENERATED_FILE_HEADER))
+          await fsp.rm(filePath, { force: true })
+      }),
+  )
 }
