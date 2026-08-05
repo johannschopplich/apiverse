@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url'
 import { pascalCase } from 'scule'
 import { defu } from 'utilful'
 
+export class SchemaGenerationError extends Error {}
+
 export interface DTSModuleOutput {
   entry: string
   modules: Record<string, string>
@@ -177,22 +179,11 @@ async function generateSchemaTypes(options: {
     return astToString(ast)
   }
   catch (error) {
-    console.error(`Failed to generate types for ${options.id}`)
-    console.error(error)
-    return `
-export type paths = Record<string, never>
-export type webhooks = Record<string, never>
-export interface components {
-  schemas: never
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
-}
-export type $defs = Record<string, never>
-export type operations = Record<string, never>
-`.trimStart()
+    const reason = Error.isError(error) ? error.message : String(error)
+    throw new SchemaGenerationError(
+      `Failed to generate types for service \`${options.id}\` – ${reason}`,
+      { cause: error },
+    )
   }
 }
 

@@ -1,11 +1,12 @@
 import type { ArgsDef, CommandDef } from 'citty'
 import process from 'node:process'
+import { SchemaGenerationError } from '../openapi/generate.ts'
 import * as log from './log.ts'
 
 // #region Per-repo bindings
 
 /** Error classes this CLI raises deliberately, beyond `CliError`. */
-const EXPECTED_ERRORS: readonly ExpectedErrorClass[] = []
+const EXPECTED_ERRORS: readonly ExpectedErrorClass[] = [SchemaGenerationError]
 
 /** Renders a recognized error for a human – the boundary appends the stack itself. */
 function describe(error: Error): string {

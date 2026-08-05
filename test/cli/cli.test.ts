@@ -43,5 +43,17 @@ describe('apiful CLI', () => {
       expect(types).toContain(`declare module 'apiful/schema/petStore'`)
       expect(types).toContain('/pets/{id}')
     })
+
+    it('exits with a failure status and writes no types for a schema it cannot read', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': `export default { services: { petStore: { schema: 'schemas/missing.json' } } }\n`,
+      })
+
+      const { exitCode, stderr } = await runCli(['generate', `--root=${directory}`])
+
+      expect(exitCode).toBe(1)
+      expect(stderr).toContain('petStore')
+      await expect(fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8')).rejects.toThrow()
+    })
   })
 })
