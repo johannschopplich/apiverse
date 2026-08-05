@@ -13,17 +13,17 @@ You can use one of the [built-in extensions](https://apiful.land/guide/using-ext
 
 ```bash
 # pnpm
-pnpm add -D apiful
+pnpm add apiful
 
 # npm
-npm i -D apiful
+npm i apiful
 ```
 
 ## Usage
 
 ### Your First API Client
 
-Create your first API client by initialising it with a base URL and a sample bearer token for authorization:
+Create your first API client by initializing it with a base URL and a sample bearer token for authorization:
 
 ```ts
 import { createClient } from 'apiful'

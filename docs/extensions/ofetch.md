@@ -3,7 +3,7 @@
 > [!NOTE]
 > This is a [handler extension](/guide/custom-extensions#handler-extension) that wraps [ofetch](https://github.com/unjs/ofetch) under the hood.
 
-This built-in extension provides the most straightforward way to make HTTP requests with APIful. It wraps the battle-tested ofetch library with automatic JSON parsing, intelligent error handling, and request/response interception. Since it inherits all default options from the client, it's perfect for developers familiar with fetch or Axios who want enhanced capabilities without complexity.
+This is the shortest way to make requests with APIful: an [ofetch](https://github.com/unjs/ofetch) instance created from your client's default options. If you know `fetch`, you know this extension – ofetch adds JSON serialization, response parsing, thrown errors for non-2xx responses, retries and request hooks on top of it.
 
 Import the `ofetchBuilder` extension and add it to your client:
 
@@ -36,4 +36,4 @@ const newUser = await client('users', {
 ```
 
 > [!TIP]
-> The ofetch extension automatically handles JSON serialization, response parsing, and error handling, making it ideal for REST APIs.
+> Every option ofetch accepts is documented in [its readme](https://github.com/unjs/ofetch#options), and each one can be set per request or as a client default.

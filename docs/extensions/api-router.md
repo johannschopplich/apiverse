@@ -3,7 +3,7 @@
 > [!NOTE]
 > This is a [handler extension](/guide/custom-extensions#handler-extension) and wraps [ofetch](https://github.com/unjs/ofetch) under the hood.
 
-The route builder extension gives you a jQuery-like and Axios-style API to construct your API calls. This extension is particularly powerful for REST APIs with predictable URL patterns, as it generates zero runtime overhead for property access until you call an HTTP method, at which point it constructs the full URL path and delegates to the underlying HTTP client. This design makes it ideal for APIs with deep nesting (like `/api/v1/organizations/123/projects/456/tasks`) while maintaining excellent TypeScript intellisense throughout the chain:
+The route builder extension gives you a jQuery-like and Axios-style API to construct your API calls. Each property access adds a path segment, and the HTTP method at the end of the chain sends the request – which reads well for REST APIs with deep, predictable paths such as `/api/v1/organizations/123/projects/456/tasks`:
 
 ```ts
 // GET request to <baseURL>/users
@@ -86,6 +86,9 @@ const result = await api('api', 'v1', 'users', userId, 'profile').get()
 | **Chain syntax** | RESTful APIs with IDs | `api.users(123).posts(456).get()` |
 | **Bracket notation** | Special characters, variables | `api['api-v2'][endpoint].get()` |
 | **Multiple arguments** | Dynamic path construction | `api('users', id, 'posts').get()` |
+
+> [!NOTE]
+> `then`, `toString` and `valueOf` are not path segments. `then` stays undefined so that a chain missing its final `.get()` is not mistaken for a promise, and the other two report the URL built so far, which is what appears when you log a route. Pass such a segment as an argument instead: `api('then').get()`.
 
 ## Request Parameters and Payloads
 

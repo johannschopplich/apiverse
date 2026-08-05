@@ -12,18 +12,18 @@ Get started by installing `apiful` in your project:
 
 ::: code-group
   ```bash [pnpm]
-  pnpm add -D apiful
+  pnpm add apiful
   ```
   ```bash [yarn]
-  yarn add -D apiful
+  yarn add apiful
   ```
   ```bash [npm]
-  npm install -D apiful
+  npm install apiful
   ```
 :::
 
 > [!TIP]
-> APIful is designed as a development dependency since it's primarily used for generating types and building API clients during your build process.
+> Your API client ships with your application, so `apiful` belongs in `dependencies`. Only the schema tooling it calls during type generation – [`openapi-typescript`](/extensions/openapi#prerequisites) and [`json-schema-to-typescript-lite`](/utilities/json-to-type-definition) – is a development dependency.
 
 ## Your First API Client
 
@@ -88,22 +88,17 @@ const newUser = await client('users', {
 
 ## Chaining Extensions
 
-Each client can have more than one extension. You can chain `with` methods to add multiple extensions to your client:
+Each client can have more than one extension. Chain `with` calls to add them:
 
 ```ts
-import type { MethodsExtensionBuilder } from 'apiful'
-
-const logExtension = (client => ({
-  logDefaults() {
-    console.log('Default fetch options:', client.defaultOptions)
-  }
-})) satisfies MethodsExtensionBuilder
-
-const extendedClient = client
+const client = createClient({ baseURL: 'https://api.example.com' })
+  // Handler extension: makes the client callable
+  .with(ofetchBuilder())
+  // Methods extension: adds `logDefaults()`
   .with(logExtension)
-
-extendedClient.logDefaults() // { baseURL: 'https://api.example.com', headers: { Authorization: 'Bearer <your-bearer-token>' } }
 ```
+
+See [Custom Extensions](/guide/custom-extensions) for how `logExtension` is written.
 
 > [!IMPORTANT]
 > When chaining multiple extensions, later extensions override methods from earlier ones. This gives you fine-grained control over the final client behavior.
