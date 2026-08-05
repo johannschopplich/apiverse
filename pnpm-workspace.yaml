@@ -1,6 +1,8 @@
+minimumReleaseAgeExclude:
+  - utilful@3.0.2
+
 shellEmulator: true
 trustPolicy: no-downgrade
-
 trustPolicyExclude:
   - vite@5.4.21
   - tinyclip@0.1.13
