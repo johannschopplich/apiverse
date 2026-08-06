@@ -6,7 +6,6 @@ describe('defineApifulConfig', () => {
     const config = defineApifulConfig({
       services: {
         api: {
-          url: 'https://api.example.com',
           schema: 'https://api.example.com/openapi.json',
         },
       },
@@ -15,7 +14,6 @@ describe('defineApifulConfig', () => {
     expect(config).toEqual({
       services: {
         api: {
-          url: 'https://api.example.com',
           schema: 'https://api.example.com/openapi.json',
         },
       },
@@ -26,11 +24,9 @@ describe('defineApifulConfig', () => {
     const config = defineApifulConfig({
       services: {
         main: {
-          url: 'https://api.example.com',
           schema: 'https://api.example.com/openapi.json',
         },
         secondary: {
-          url: 'https://api2.example.com',
           schema: 'https://api2.example.com/openapi.json',
         },
       },

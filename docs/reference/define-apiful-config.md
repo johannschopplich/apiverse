@@ -25,7 +25,6 @@ export default defineApifulConfig({
 
 ```ts
 interface ServiceOptions {
-  url?: string
   schema?: string | URL | OpenAPI3 | (() => Promise<OpenAPI3>)
   openAPITS?: OpenAPITSOptions
 }
