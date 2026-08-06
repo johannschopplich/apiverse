@@ -13,11 +13,11 @@ If you have not created a client yet, start with [Getting Started](/guide/gettin
 
 ## How Extensions Work
 
-Every `.with()` call wraps the client in a proxy that routes property access to the extension that provides it, so a chain of extensions stays a single callable client and TypeScript keeps the types of each one.
+Every `.with()` call returns a new client, wrapped in a proxy that routes property access to the extension that provides it, so a chain of extensions stays a single callable client and TypeScript keeps the types of each one. The client you called it on is left as it was, which means you can extend one client two different ways without the two interfering.
 
 Extensions come in two kinds:
 
-- A **[handler extension](/guide/custom-extensions#handler-extension)** provides the call signature that makes requests. A client takes one – adding a second replaces the first. The [built-in extensions](/extensions/) are all handler extensions.
+- A **[handler extension](/guide/custom-extensions#handler-extension)** provides the call signature that makes requests. A client takes one – adding a second replaces the first, on the client `.with()` returns. The [built-in extensions](/extensions/) are all handler extensions.
 - A **[methods extension](/guide/custom-extensions#methods-extension)** adds named methods to the client. Add as many as you like.
 
 Every extension is handed the client, so all of them read the same `defaultOptions`. Where two provide the same name, the later one wins:

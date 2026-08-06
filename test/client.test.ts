@@ -114,6 +114,37 @@ describe('createClient', () => {
     expect((extendedClient as unknown as { bar: string }).bar).toBe('added')
   })
 
+  it('keeps the methods of two clients extended from the same client apart', () => {
+    const client = createClient()
+    const left = client.with(() => ({ tag: () => 'left' }))
+    const right = client.with(() => ({ tag: () => 'right' }))
+    expect(left.tag()).toBe('left')
+    expect(right.tag()).toBe('right')
+  })
+
+  it('keeps the callable behavior of a client another was extended from', () => {
+    const client = createClient()
+    const first = client.with(() => () => 'first')
+    const second = first.with(() => () => 'second')
+    expect((first as unknown as () => string)()).toBe('first')
+    expect((second as unknown as () => string)()).toBe('second')
+  })
+
+  it('leaves the client `with` was called on without the extension', () => {
+    const client = createClient()
+    client.with(() => ({ ghost: () => 'boo' }))
+    expect(Object.keys(client._extensions)).toEqual([])
+    expect((client as unknown as { ghost?: unknown }).ghost).toBeUndefined()
+  })
+
+  it('exposes the properties of a handler extension after a further `with`', () => {
+    const extendedClient = createClient()
+      .with(extension)
+      .with(extensionWithRequestMethod)
+    expect(extendedClient.foo).toBe('bar')
+    expect(extendedClient.request()).toBeInstanceOf(Response)
+  })
+
   it('replaces previous callable behavior with the latest callable extension', () => {
     const firstHandler = ((_client) => {
       const target = () => 'first'
