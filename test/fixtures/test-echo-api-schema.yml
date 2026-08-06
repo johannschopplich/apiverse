@@ -1,85 +1,40 @@
 openapi: 3.0.0
 info:
   title: Test Echo API
-  description: A comprehensive API designed for testing HTTP client behaviors and request/response patterns
+  description: A small API covering the shapes the generated types have to carry
   version: 1.0.0
-  contact:
-    name: APIful Test Suite
-    url: https://github.com/johannschopplich/apiful
-
-servers:
-  - url: http://localhost:3000
-    description: Local development server
 
 paths:
-  /echo/static/constant:
+  /echo/{id}:
     get:
-      summary: Get constant static response
-      description: Returns a constant static response for testing GET requests
-      operationId: getStaticConstant
-      tags:
-        - Static Response
+      summary: Echo a path parameter back
+      operationId: echoById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: value
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
-          description: Successful static response
+          description: Successful echo of the path parameter
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StaticResponse'
-              examples:
-                default:
-                  value:
-                    value: foo
         '404':
           $ref: '#/components/responses/NotFound'
 
   /echo/request:
     post:
-      summary: Echo POST request details
-      description: Echoes back the details of a POST request including headers, body, and metadata
-      operationId: echoPostRequest
-      tags:
-        - Request Echo
+      summary: Echo the request details back
+      operationId: echoRequest
       requestBody:
-        description: Request data to be echoed back
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EchoRequest'
-            examples:
-              simple:
-                summary: Simple request body
-                value:
-                  foo: bar
-                  number: 42
-      responses:
-        '200':
-          description: Successful echo of request details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EchoResponse'
-              examples:
-                default:
-                  value:
-                    path: /echo/request
-                    method: POST
-                    body:
-                      foo: bar
-                    headers:
-                      content-type: application/json
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-    put:
-      summary: Echo PUT request details
-      description: Echoes back the details of a PUT request including headers, body, and metadata
-      operationId: echoPutRequest
-      tags:
-        - Request Echo
-      requestBody:
-        description: Request data to be echoed back
         required: true
         content:
           application/json:
@@ -87,182 +42,54 @@ paths:
               $ref: '#/components/schemas/EchoRequest'
       responses:
         '200':
-          description: Successful echo of PUT request details
+          description: Successful echo of the request details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EchoResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
-
-    patch:
-      summary: Echo PATCH request details
-      description: Echoes back the details of a PATCH request including headers, body, and metadata
-      operationId: echoPatchRequest
-      tags:
-        - Request Echo
-      requestBody:
-        description: Request data to be echoed back
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EchoRequest'
-      responses:
-        '200':
-          description: Successful echo of PATCH request details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EchoResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-    delete:
-      summary: Echo DELETE request details
-      description: Echoes back the details of a DELETE request including headers and metadata
-      operationId: echoDeleteRequest
-      tags:
-        - Request Echo
-      responses:
-        '200':
-          description: Successful echo of DELETE request details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EchoResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  /echo/query:
-    get:
-      summary: Echo query parameters
-      description: Returns the provided query parameters for testing query parameter handling
-      operationId: echoQueryParameters
-      tags:
-        - Query Parameters
-      parameters:
-        - name: value
-          in: query
-          description: A query parameter value to be echoed back
-          required: false
-          schema:
-            type: string
-            example: test-value
-        - name: number
-          in: query
-          description: A numeric query parameter to be echoed back
-          required: false
-          schema:
-            type: integer
-            example: 42
-        - name: boolean
-          in: query
-          description: A boolean query parameter to be echoed back
-          required: false
-          schema:
-            type: boolean
-            example: true
-      responses:
-        '200':
-          description: Successful echo of query parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/QueryResponse'
-              examples:
-                with_params:
-                  summary: Response with query parameters
-                  value:
-                    value: test-value
-                    number: '42'
-                    boolean: 'true'
-                empty:
-                  summary: Response with no query parameters
-                  value: {}
 
 components:
   schemas:
     StaticResponse:
       type: object
-      description: Static response with a constant value
       required:
         - value
       properties:
         value:
           type: string
-          description: The constant static value returned by the endpoint
-          example: foo
 
     EchoRequest:
       type: object
-      description: Flexible request body that accepts any JSON structure for echo testing
       additionalProperties: true
-      example:
-        foo: bar
-        number: 42
-        nested:
-          key: value
 
     EchoResponse:
       type: object
-      description: Echo response containing request details and metadata
       required:
         - path
         - method
       properties:
         path:
           type: string
-          description: The request path that was called
-          example: /echo/request
         body:
           type: object
-          description: The request body that was sent (if any)
           additionalProperties: true
           nullable: true
-        headers:
-          type: object
-          description: The request headers that were sent
-          additionalProperties:
-            type: string
-          example:
-            content-type: application/json
-            x-foo: bar
         method:
           type: string
-          description: The HTTP method that was used
-          enum: [GET, POST, PUT, DELETE, PATCH]
-          example: POST
-
-    QueryResponse:
-      type: object
-      description: Echo response containing the query parameters that were provided
-      additionalProperties:
-        type: string
-      example:
-        value: test-value
-        number: '42'
-        boolean: 'true'
+          enum: [GET, POST]
 
     Error:
       type: object
-      description: Standard error response format
       required:
         - statusCode
         - statusMessage
       properties:
         statusCode:
           type: integer
-          description: HTTP status code
-          example: 404
         statusMessage:
           type: string
-          description: Human-readable error message
-          example: Not Found
-        details:
-          type: string
-          description: Additional error details (optional)
-          example: The requested resource could not be found
 
   responses:
     NotFound:
@@ -271,12 +98,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-          examples:
-            default:
-              value:
-                statusCode: 404
-                statusMessage: Not Found
-                details: The requested resource could not be found
 
     BadRequest:
       description: The request was malformed or invalid
@@ -284,17 +105,3 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-          examples:
-            default:
-              value:
-                statusCode: 400
-                statusMessage: Bad Request
-                details: The request body is malformed or missing required fields
-
-  tags:
-    - name: Static Response
-      description: Endpoints that return static, unchanging responses
-    - name: Request Echo
-      description: Endpoints that echo back request details for testing purposes
-    - name: Query Parameters
-      description: Endpoints for testing query parameter handling

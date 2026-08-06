@@ -14,15 +14,21 @@ describe('OpenAPI types generation', () => {
     },
   })
 
-  it('generates TypeScript types from OpenAPI schema', async () => {
-    const types = await generateDTS(config.services)
-    expect(types).toMatchSnapshot()
-  })
-
   it('generates DTS modules for directory output', async () => {
     const { entry, modules } = await generateDTSModules(config.services)
 
     expect(entry).toMatchSnapshot()
     expect(modules).toMatchSnapshot()
+  })
+
+  it('joins the entry and the modules into a single declaration file', async () => {
+    const { entry, modules } = await generateDTSModules(config.services)
+    const types = await generateDTS(config.services)
+
+    expect(types).toBe(`${entry}\n${Object.values(modules).join('\n\n')}`)
+  })
+
+  it('generates the entry alone for a configuration listing no service', async () => {
+    expect(await generateDTS({})).toBe((await generateDTSModules({})).entry)
   })
 })
