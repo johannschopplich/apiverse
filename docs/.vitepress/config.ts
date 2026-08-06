@@ -57,6 +57,7 @@ export default defineConfig({
         text: 'Cookbook',
         activeMatch: '^/cookbook/',
         items: [
+          { text: 'Authenticating Requests', link: '/cookbook/authentication' },
           { text: 'Typed Clients for Nitro', link: '/cookbook/typed-nitro-client' },
         ],
       },
@@ -156,6 +157,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
     {
       text: 'Cookbook',
       items: [
+        { text: 'Authenticating Requests', link: '/cookbook/authentication' },
         { text: 'Typed Clients for Nitro', link: '/cookbook/typed-nitro-client' },
       ],
     },
