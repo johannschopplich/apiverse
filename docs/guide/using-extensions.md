@@ -1,49 +1,48 @@
 # Using Extensions
 
-## Prerequisite: Create a Client
-
-Before you can use extensions, you must create a client. Once a client is initialized, you can add extensions to it:
+A client on its own holds nothing but default fetch options – calling it throws. Extensions give it behavior, and `with` adds them:
 
 ```ts
-import { createClient } from 'apiful'
+import { createClient, ofetchBuilder } from 'apiful'
 
-const client = createClient({
-  // Defaults to `/` if not set
-  baseURL: 'https://api.example.com',
-  headers: {
-    Authorization: `Bearer ${process.env.API_KEY}`,
-  },
-})
+const client = createClient({ baseURL: 'https://api.example.com' })
+  .with(ofetchBuilder())
 ```
 
-> [!IMPORTANT]
-> The client by itself can't make requests – you need at least one handler extension to provide the actual HTTP functionality.
-
-> [!TIP]
-> Default options are automatically passed to all extensions, ensuring consistent configuration across your entire client.
+If you have not created a client yet, start with [Getting Started](/guide/getting-started).
 
 ## How Extensions Work
 
 Every `.with()` call wraps the client in a proxy that routes property access to the extension that provides it, so a chain of extensions stays a single callable client and TypeScript keeps the types of each one.
 
-Extensions come in two kinds: [handler extensions](/guide/custom-extensions#handler-extension) provide the call signature that makes requests, and [methods extensions](/guide/custom-extensions#methods-extension) add methods to the client. Where two extensions provide the same name, the later one wins.
+Extensions come in two kinds:
 
-> [!IMPORTANT]
-> You can only have one active handler extension (callable extension) per client. If you add multiple handler extensions, the last one will replace the previous ones. Methods extensions, however, can be combined freely.
+- A **[handler extension](/guide/custom-extensions#handler-extension)** provides the call signature that makes requests. A client takes one – adding a second replaces the first. The [built-in extensions](/extensions/) are all handler extensions.
+- A **[methods extension](/guide/custom-extensions#methods-extension)** adds named methods to the client. Add as many as you like.
 
-## Built-in Extensions
+Every extension is handed the client, so all of them read the same `defaultOptions`. Where two provide the same name, the later one wins:
 
-APIful includes several pre-built extensions that provide different API interaction patterns. You can add multiple extensions to a client by chaining the `with` method.
+```ts
+import type { MethodsExtensionBuilder } from 'apiful'
+import { createClient } from 'apiful'
 
-Choose the extension that best fits your use case and personal preference:
+const firstExtension = (() => ({
+  greet: () => 'Hello from first!',
+})) satisfies MethodsExtensionBuilder
 
-- **[ofetch](/extensions/ofetch)** - Direct fetch-style requests with `client('/path', options)`
-- **[OpenAPI](/extensions/openapi)** - Type-safe requests based on OpenAPI schemas
-- **[API Router](/extensions/api-router)** - jQuery/Axios-style chaining with `client.users.get()`
+const secondExtension = (() => ({
+  greet: () => 'Hello from second!',
+})) satisfies MethodsExtensionBuilder
 
-> [!TIP]
-> Start with the ofetch extension if you're new to APIful – it provides the most familiar API for developers coming from fetch or Axios.
+const client = createClient({ baseURL: 'https://api.example.com' })
+  .with(firstExtension)
+  .with(secondExtension)
 
-## Custom Extensions
+console.log(client.greet()) // "Hello from second!"
+```
 
-Need something specific? Follow the [Custom Extensions](/guide/custom-extensions) guide to learn how to create your own extensions that perfectly match your requirements.
+## Choosing an Extension
+
+The three [built-in extensions](/extensions/) differ only in how you write a request – that page compares the call signatures side by side.
+
+To write your own, see [Custom Extensions](/guide/custom-extensions).

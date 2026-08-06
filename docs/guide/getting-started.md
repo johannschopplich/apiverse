@@ -2,9 +2,9 @@
 
 ## What Is This?
 
-APIful provides a unified interface to manage all your API interactions by setting up a client with default fetch options, such as the base API URL and headers. Extensions add a variety of features to the client while maintaining full TypeScript type safety. Learn more about [how extensions work](/guide/using-extensions#how-extensions-work).
+An APIful client is a set of default fetch options – a base URL, headers, retries – plus the extensions you add to it. The extensions decide how you write a request and how much of it TypeScript knows: plain `fetch`-style calls, a chain of path segments, or paths and responses typed from an OpenAPI schema.
 
-You can use one of the [built-in extensions](/guide/using-extensions#built-in-extensions) to get started right away, or create your own [custom extension](/guide/custom-extensions) to meet your specific needs.
+Start with one of the [built-in extensions](/extensions/), or [write your own](/guide/custom-extensions). Either way the client stays one callable object, which is [how extensions work](/guide/using-extensions#how-extensions-work).
 
 ## Installation
 
@@ -41,19 +41,13 @@ const client = createClient({
 ```
 
 > [!NOTE]
-> The `createClient` function returns an [`ApiClient`](/reference/api-client) instance that can't yet make requests. You'll need to add a handler extension to enable HTTP functionality.
+> `createClient` returns an [`ApiClient`](/reference/api-client) that cannot make requests yet – calling it throws a `TypeError` until you add a handler extension.
 
-## Choose a Built-in Extension
+## Add a Handler Extension
 
-APIful includes several extensions to handle different API interaction patterns:
+`ofetchBuilder` wraps [ofetch](https://github.com/unjs/ofetch) and is the shortest way to a working client. It is one of three [built-in extensions](/extensions/), which differ in how you write a request – pick another one later if it suits your API better.
 
-- **[ofetch](/extensions/ofetch)** - Simple fetch-style requests, perfect for getting started
-- **[OpenAPI](/extensions/openapi)** - Type-safe requests from OpenAPI schemas
-- **[API Router](/extensions/api-router)** - jQuery-style chaining for intuitive API calls
-
-The `ofetchBuilder` extension wraps [ofetch](https://github.com/unjs/ofetch) and provides the most straightforward way to make HTTP requests.
-
-Add the `ofetchBuilder` to your client using the `with` method:
+Add it to your client with the `with` method:
 
 ```ts
 import { createClient, ofetchBuilder } from 'apiful'
@@ -80,15 +74,14 @@ const newUser = await client('users', {
 })
 ```
 
-> [!NOTE]
-> Each request automatically inherits your client's default options (base URL, headers, etc.) while allowing you to override them per request. The ofetch extension handles JSON serialization, response parsing, and error handling automatically, making API interactions feel natural and predictable.
+Each request inherits the client's default options and can override them individually. JSON serialization, response parsing and thrown errors for non-2xx responses come from ofetch.
 
 > [!TIP]
-> If your API provides an OpenAPI schema, follow the [OpenAPI extension documentation](/extensions/openapi) to learn more about how to generate TypeScript definitions from your OpenAPI schema files and create fully typed API clients.
+> If your API publishes an OpenAPI schema, the [OpenAPI extension](/extensions/openapi) types paths, bodies and responses for you from that schema.
 
 ## Chaining Extensions
 
-Each client can have more than one extension. Chain `with` calls to add them:
+A client can carry more than one extension. Chain `with` calls to add them:
 
 ```ts
 const client = createClient({ baseURL: 'https://api.example.com' })
@@ -98,10 +91,4 @@ const client = createClient({ baseURL: 'https://api.example.com' })
   .with(logExtension)
 ```
 
-See [Custom Extensions](/guide/custom-extensions) for how `logExtension` is written.
-
-> [!IMPORTANT]
-> When chaining multiple extensions, later extensions override methods from earlier ones. This gives you fine-grained control over the final client behavior.
-
-> [!TIP]
-> If you have specific requirements that aren't covered by the included extensions, you can create your own extensions. Follow the [Custom Extensions](/guide/custom-extensions) guide to learn more.
+See [Custom Extensions](/guide/custom-extensions) for how `logExtension` is written, and [how extensions work](/guide/using-extensions#how-extensions-work) for what happens when two of them collide.
