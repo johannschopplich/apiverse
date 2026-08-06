@@ -41,8 +41,4 @@ const client = createClient({ baseURL: 'https://api.example.com' })
 console.log(client.greet()) // "Hello from second!"
 ```
 
-## Choosing an Extension
-
-The three [built-in extensions](/extensions/) differ only in how you write a request – that page compares the call signatures side by side.
-
-To write your own, see [Custom Extensions](/guide/custom-extensions).
+The three [built-in extensions](/extensions/) differ only in how you write a request; that page compares the call signatures side by side. To write your own, see [Custom Extensions](/guide/custom-extensions).

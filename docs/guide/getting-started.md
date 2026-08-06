@@ -1,7 +1,5 @@
 # Getting Started
 
-## What Is This?
-
 An APIful client is a set of default fetch options – a base URL, headers, retries – plus the extensions you add to it. The extensions decide how you write a request and how much of it TypeScript knows: plain `fetch`-style calls, a chain of path segments, or paths and responses typed from an OpenAPI schema.
 
 Start with one of the [built-in extensions](/extensions/), or [write your own](/guide/custom-extensions). Either way the client stays one callable object, which is [how extensions work](/guide/using-extensions#how-extensions-work).
@@ -74,10 +72,10 @@ const newUser = await client('users', {
 })
 ```
 
-Each request inherits the client's default options and can override them individually. JSON serialization, response parsing and thrown errors for non-2xx responses come from ofetch.
+Each request inherits the client's default options and can override them individually. JSON serialization, response parsing, and thrown errors for non-2xx responses come from ofetch.
 
 > [!TIP]
-> If your API publishes an OpenAPI schema, the [OpenAPI extension](/extensions/openapi) types paths, bodies and responses for you from that schema.
+> If your API publishes an OpenAPI schema, the [OpenAPI extension](/extensions/openapi) types paths, bodies, and responses for you from that schema.
 
 ## Chaining Extensions
 
