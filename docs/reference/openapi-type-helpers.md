@@ -78,19 +78,23 @@ type PetResponse = PetStore<'/pet/{petId}', 'get'>['response']
 //   ^? { id?: number; name: string; status: string }
 ```
 
-### Error Handling Types
+### Error Response Types
 
-Properly type your error handling by extracting specific error response types. This ensures robust error handling with full type safety:
+`responses` maps every status code the operation declares to the body it returns:
 
 ```ts
-// Extract specific error response types
-type NotFoundError = PetStore<'/pet/{petId}', 'get'>['responses'][404]
-type ValidationError = PetStore<'/pet', 'post'>['responses'][400]
-
-// All possible responses for an endpoint
+// All responses the endpoint declares
 type AllPetResponses = PetStore<'/pet/{petId}', 'get'>['responses']
-//   ^? { 200: Pet; 404: NotFoundError; 400: ValidationError }
+//   ^? { 200: Pet; 400: Record<string, never>; 404: Record<string, never> }
+
+// A single status code
+type PetNotFound = PetStore<'/pet/{petId}', 'get'>['responses'][404]
+//   ^? Record<string, never>
 ```
+
+Only the codes the operation itself declares are available, so `PetStore<'/pet', 'post'>['responses']` offers `200` and `405` and nothing else. A status declared without a response body – which is every error in the Petstore schema – resolves to `Record<string, never>`.
+
+This is the body a status maps to. To type the error a failed request actually throws, use [`FetchResponseError`](/extensions/openapi#error-responses).
 
 ## Schema Discovery
 

@@ -116,6 +116,28 @@ const response = await petStore('/foo/{id}', {
 > [!WARNING]
 > Incorrect parameters won't be reported at runtime. An incomplete path will be sent to the backend _as-is_.
 
+## Error Responses
+
+A non-2xx response throws, the same as with any ofetch client. The thrown error carries the parsed body on `data`, and `FetchResponseError` types that body from the schema the request was typed against:
+
+```ts
+import type { FetchResponseError } from 'apiful/openapi'
+import type { PetStore } from 'apiful/schema'
+
+type PetError = FetchResponseError<PetStore<'/pet/{petId}', 'get'>['operation']>
+
+try {
+  const pet = await petStore('/pet/{petId}', { path: { petId: 1 } })
+}
+catch (caught) {
+  const { status, data } = caught as PetError
+}
+```
+
+The cast is unavoidable: TypeScript types a `catch` binding as `unknown`, and no schema can promise what a network failure throws.
+
+`data` comes from the response bodies the schema declares for the operation's error statuses. Where a schema names a status but gives it no content – as the Petstore does throughout – `data` is `undefined`, and the status code is all you get.
+
 ## Request Headers
 
 Add headers to the request using the `headers` field. All headers defined in the OpenAPI schema will be type checked. You can still add additional headers that aren't defined in the schema, which won't be type checked.

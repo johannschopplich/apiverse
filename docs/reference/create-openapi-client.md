@@ -40,9 +40,13 @@ declare function createOpenAPIClient<
 > [!NOTE]
 > `Schema` is the service name from your `apiful.config.ts` file, same as with `OpenAPIBuilder`. `Paths` is derived from it and is not meant to be passed.
 
+## Error Responses
+
+A non-2xx response throws, and [`FetchResponseError`](/extensions/openapi#error-responses) types the body the error carries – from the same schema, in the same way it works with `OpenAPIBuilder`.
+
 ## Options Resolved per Request
 
-The default options are read once, when the client is created. For a value that changes between requests – a rotating token, for example – use ofetch's `onRequest` hook, which runs on every call:
+The default options are read once, when the client is created. For a value that changes between requests – a rotating token, for example – use ofetch's `onRequest` hook, which runs on every call. [Authenticating Requests](/cookbook/authentication) works this through, including refreshing after a `401`:
 
 ```ts
 const client = createOpenAPIClient<'petStore'>({
