@@ -9,9 +9,11 @@ import { defu } from 'utilful'
 /** The `//` is required, so a Windows drive letter is not read as a scheme. */
 const URL_SCHEME_RE = /^[a-z][\w+.-]*:\/\//i
 
-export interface DTSModuleOutput {
+export interface DTSFragmentOutput {
+  /** The `apiful/schema` module, importing from every fragment and exporting the type helpers. */
   entry: string
-  modules: Record<string, string>
+  /** One `apiful/schema/<id>` module per service, keyed by service name. */
+  fragments: Record<string, string>
 }
 
 export interface GenerateOptions {
@@ -26,19 +28,19 @@ export async function generateDTS(
   services: Record<string, ServiceOptions>,
   options: GenerateOptions = {},
 ): Promise<string> {
-  return joinDTSModules(await generateDTSModules(services, options))
+  return joinDTSFragments(await generateDTSFragments(services, options))
 }
 
-/** Runs the entry and the per-service modules together into the single file `generateDTS` returns. */
-export function joinDTSModules({ entry, modules }: DTSModuleOutput): string {
-  const moduleContent = Object.values(modules).join('\n\n')
-  return moduleContent ? `${entry}\n${moduleContent}` : entry
+/** Joins the entry and the per-service fragments into the single file `generateDTS` returns. */
+export function joinDTSFragments({ entry, fragments }: DTSFragmentOutput): string {
+  const fragmentContent = Object.values(fragments).join('\n\n')
+  return fragmentContent ? `${entry}\n${fragmentContent}` : entry
 }
 
-export async function generateDTSModules(
+export async function generateDTSFragments(
   services: Record<string, ServiceOptions>,
   options: GenerateOptions = {},
-): Promise<DTSModuleOutput> {
+): Promise<DTSFragmentOutput> {
   const resolvedSchemaEntries = await Promise.all(
     Object.entries(services).map(async ([id, service]) => {
       const types = await generateSchemaTypes({ id, service, ...options })
@@ -109,7 +111,7 @@ export type ${pascalCase(id)}Model<T extends keyof ${pascalCase(id)}Components['
     })
     .join('\n\n')
 
-  const modules = Object.fromEntries(
+  const fragments = Object.fromEntries(
     Object.entries(resolvedSchemas).map(([id, types]) => {
       const content = `
 declare module 'apiful/schema/${id}' {
@@ -135,7 +137,7 @@ ${applyLineIndent(typeExports)}
 
   return {
     entry,
-    modules,
+    fragments,
   }
 }
 

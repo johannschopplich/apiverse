@@ -1,7 +1,7 @@
-import type { DTSModuleOutput } from '../openapi/generate.ts'
+import type { DTSFragmentOutput } from '../openapi/generate.ts'
 import * as path from 'node:path'
 import { DEFAULT_OUTFILE, GENERATED_FILE_HEADER } from '../constants.ts'
-import { joinDTSModules } from '../openapi/generate.ts'
+import { joinDTSFragments } from '../openapi/generate.ts'
 
 export interface GenerationPlan {
   /** Full contents keyed by absolute path, for every file the run would write. */
@@ -22,20 +22,19 @@ export interface PlanOptions {
   /** Fragmented output directory, taking an entry file and one fragment per service. */
   outdir?: string
   /**
-   * Contents of the files already in the fragment directory, keyed by file name. Read by
-   * the caller so planning stays off the disk, and only consulted for `outdir`, where a
-   * fragment of a service the configuration no longer lists has to be found to be removed.
+   * Contents of the files already in the fragment directory, keyed by file name. The caller
+   * reads them so planning stays off the disk; without them an `outdir` run removes nothing.
    */
   existingFragments?: Map<string, string>
 }
 
-/** Directory the per-service fragments of an `outdir` run live in. */
+/** Resolves the directory the per-service fragments of an `outdir` run live in. */
 export function fragmentDirectoryFor(rootDir: string, outdir: string): string {
   return path.join(path.resolve(rootDir, outdir), 'schema')
 }
 
 /** Decides everything a run would change on disk, without touching any of it. */
-export function planGeneration(dts: DTSModuleOutput, options: PlanOptions): GenerationPlan {
+export function planGeneration(dts: DTSFragmentOutput, options: PlanOptions): GenerationPlan {
   const { outdir } = options
 
   return outdir
@@ -44,9 +43,9 @@ export function planGeneration(dts: DTSModuleOutput, options: PlanOptions): Gene
 }
 
 /**
- * Compares a plan against the contents already on disk, keyed by the same absolute paths
- * the plan uses, and describes each way they disagree. A path missing from `currentContents`
- * is a file that is not there. An empty list is what `--check` is looking for.
+ * Compares a plan against the contents already on disk, keyed by the same absolute paths the
+ * plan uses, and describes each way they disagree. A path the map leaves out counts as a file
+ * that is not there; an empty list is what `--check` is looking for.
  */
 export function findDrift(
   { files, removals }: GenerationPlan,
@@ -70,12 +69,12 @@ export function findDrift(
   return drift
 }
 
-function planSingleFileOutput(dts: DTSModuleOutput, { rootDir, outfile }: PlanOptions): GenerationPlan {
+function planSingleFileOutput(dts: DTSFragmentOutput, { rootDir, outfile }: PlanOptions): GenerationPlan {
   const outfilePath = path.resolve(rootDir, outfile || DEFAULT_OUTFILE)
-  const serviceCount = Object.keys(dts.modules).length
+  const serviceCount = Object.keys(dts.fragments).length
 
   return {
-    files: new Map([[outfilePath, `${GENERATED_FILE_HEADER}${joinDTSModules(dts)}`]]),
+    files: new Map([[outfilePath, `${GENERATED_FILE_HEADER}${joinDTSFragments(dts)}`]]),
     removals: [],
     directories: [path.dirname(outfilePath)],
     summary: `OpenAPI types generated in \`${path.relative(rootDir, outfilePath)}\` (${serviceCount} ${pluralizeServices(serviceCount)})`,
@@ -83,7 +82,7 @@ function planSingleFileOutput(dts: DTSModuleOutput, { rootDir, outfile }: PlanOp
 }
 
 function planFragmentedOutput(
-  { entry, modules }: DTSModuleOutput,
+  { entry, fragments }: DTSFragmentOutput,
   { rootDir, outdir, existingFragments }: PlanOptions & { outdir: string },
 ): GenerationPlan {
   const outputDir = path.resolve(rootDir, outdir)
@@ -94,7 +93,7 @@ function planFragmentedOutput(
   const references: string[] = []
   const fragmentFileNames: string[] = []
 
-  for (const [id, contents] of Object.entries(modules)) {
+  for (const [id, contents] of Object.entries(fragments)) {
     const fileName = `${id}.d.ts`
     const fragmentPath = path.join(fragmentDir, fileName)
 

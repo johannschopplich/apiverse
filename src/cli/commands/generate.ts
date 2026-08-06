@@ -4,7 +4,7 @@ import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand } from 'citty'
-import { generateDTSModules } from '../../openapi/generate.ts'
+import { generateDTSFragments } from '../../openapi/generate.ts'
 import { CliError, commonArgs, withCleanErrors } from '../errors.ts'
 import * as log from '../log.ts'
 import { findDrift, fragmentDirectoryFor, planGeneration } from '../plan.ts'
@@ -67,7 +67,7 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
       return
     }
 
-    const dts = await generateDTSModules(Object.fromEntries(servicesWithSchema), { rootDir })
+    const dts = await generateDTSFragments(Object.fromEntries(servicesWithSchema), { rootDir })
 
     const plan = planGeneration(dts, {
       rootDir,
@@ -106,7 +106,7 @@ async function applyPlan({ files, removals, directories }: GenerationPlan): Prom
   await Promise.all([...files].map(([filePath, contents]) => fsp.writeFile(filePath, contents)))
 }
 
-/** Contents of every file in a directory, keyed by file name. Empty where the directory is absent. */
+/** Reads every file in a directory into a map keyed by file name. Empty where the directory is absent. */
 async function readDirectory(directory: string): Promise<Map<string, string>> {
   const fileNames = await fsp.readdir(directory).catch(() => [])
 
@@ -120,7 +120,7 @@ async function readDirectory(directory: string): Promise<Map<string, string>> {
   )
 }
 
-/** Contents of the files a plan would write, leaving out those that are not there yet. */
+/** Reads the files a plan would write, leaving out those that are not there yet. */
 async function readPlannedFiles({ files }: GenerationPlan): Promise<Map<string, string>> {
   const entries = await Promise.all([...files.keys()].map(async (filePath) => {
     const contents = await fsp.readFile(filePath, 'utf-8').catch(() => undefined)

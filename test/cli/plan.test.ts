@@ -1,4 +1,4 @@
-import type { DTSModuleOutput } from '../../src/openapi/generate.ts'
+import type { DTSFragmentOutput } from '../../src/openapi/generate.ts'
 import * as path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { findDrift, fragmentDirectoryFor, planGeneration } from '../../src/cli/plan.ts'
@@ -6,26 +6,26 @@ import { GENERATED_FILE_HEADER } from '../../src/constants.ts'
 
 const ROOT = path.resolve('/projects/app')
 
-const DTS: DTSModuleOutput = {
+const DTS: DTSFragmentOutput = {
   entry: `declare module 'apiful/schema' {}\n`,
-  modules: {
+  fragments: {
     petStore: `declare module 'apiful/schema/petStore' {}\n`,
     testEcho: `declare module 'apiful/schema/testEcho' {}\n`,
   },
 }
 
-const SINGLE_SERVICE_DTS: DTSModuleOutput = {
+const SINGLE_SERVICE_DTS: DTSFragmentOutput = {
   entry: DTS.entry,
-  modules: { petStore: DTS.modules.petStore! },
+  fragments: { petStore: DTS.fragments.petStore! },
 }
 
 describe('planGeneration', () => {
-  it('writes the entry and every module to apiful.d.ts under the root', () => {
+  it('writes the entry and every fragment to apiful.d.ts under the root', () => {
     const { files } = planGeneration(DTS, { rootDir: ROOT })
 
     expect([...files.keys()]).toEqual([path.join(ROOT, 'apiful.d.ts')])
     expect(files.get(path.join(ROOT, 'apiful.d.ts'))).toBe(
-      `${GENERATED_FILE_HEADER}${DTS.entry}\n${DTS.modules.petStore}\n\n${DTS.modules.testEcho}`,
+      `${GENERATED_FILE_HEADER}${DTS.entry}\n${DTS.fragments.petStore}\n\n${DTS.fragments.testEcho}`,
     )
   })
 
@@ -47,9 +47,9 @@ describe('planGeneration', () => {
     const { files } = planGeneration(DTS, { rootDir: ROOT, outdir: 'generated' })
 
     expect(files.get(path.join(ROOT, 'generated/schema/petStore.d.ts')))
-      .toBe(`${GENERATED_FILE_HEADER}${DTS.modules.petStore}`)
+      .toBe(`${GENERATED_FILE_HEADER}${DTS.fragments.petStore}`)
     expect(files.get(path.join(ROOT, 'generated/schema/testEcho.d.ts')))
-      .toBe(`${GENERATED_FILE_HEADER}${DTS.modules.testEcho}`)
+      .toBe(`${GENERATED_FILE_HEADER}${DTS.fragments.testEcho}`)
   })
 
   it('points the --outdir entry at each fragment with a forward-slash reference path', () => {
@@ -69,7 +69,7 @@ describe('planGeneration', () => {
   })
 
   it('names the output directory instead when no service is listed', () => {
-    const empty: DTSModuleOutput = { entry: DTS.entry, modules: {} }
+    const empty: DTSFragmentOutput = { entry: DTS.entry, fragments: {} }
     const { files, directories, summary } = planGeneration(empty, { rootDir: ROOT, outdir: 'generated' })
 
     expect(directories).toEqual([path.join(ROOT, 'generated')])

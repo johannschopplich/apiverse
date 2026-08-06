@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`OpenAPI types generation > generates DTS modules for directory output 1`] = `
+exports[`OpenAPI types generation > generates an entry and one fragment per service 1`] = `
 "declare module 'apiful/schema' {
   import { OpenAPIEndpoint, OpenAPIPathMethods } from 'apiful/openapi'
   import { paths as TestEchoPaths, components as TestEchoComponents } from 'apiful/schema/testEcho'
@@ -58,7 +58,7 @@ exports[`OpenAPI types generation > generates DTS modules for directory output 1
 "
 `;
 
-exports[`OpenAPI types generation > generates DTS modules for directory output 2`] = `
+exports[`OpenAPI types generation > generates an entry and one fragment per service 2`] = `
 {
   "testEcho": "declare module 'apiful/schema/testEcho' {
   export interface paths {
