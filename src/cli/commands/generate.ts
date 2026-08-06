@@ -1,29 +1,14 @@
 import type { ArgsDef, CommandDef } from 'citty'
-import type { ServiceOptions } from '../../config.ts'
+import type { GenerationPlan } from '../plan.ts'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand } from 'citty'
-import { DEFAULT_OUTFILE, GENERATED_FILE_HEADER } from '../../constants.ts'
-import { generateDTS, generateDTSModules } from '../../openapi/generate.ts'
+import { generateDTSModules } from '../../openapi/generate.ts'
 import { CliError, commonArgs, withCleanErrors } from '../errors.ts'
 import * as log from '../log.ts'
+import { findDrift, fragmentDirectoryFor, planGeneration } from '../plan.ts'
 import { loadConfig } from '../utils.ts'
-
-/**
- * Everything a run would change on disk, decided before it touches any of it, so
- * `--check` can compare the plan against what is already there.
- */
-interface GenerationPlan {
-  /** Full contents keyed by absolute path, for every file the run would write. */
-  files: Map<string, string>
-  /** Absolute paths of generated files the run would delete. */
-  removals: string[]
-  /** Absolute paths the run would create before writing. */
-  directories: string[]
-  /** Line reported once the plan is applied. */
-  summary: string
-}
 
 const args: ArgsDef = {
   ...commonArgs,
@@ -82,14 +67,19 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
       return
     }
 
-    const resolvedOpenAPIServices = Object.fromEntries(servicesWithSchema)
+    const dts = await generateDTSModules(Object.fromEntries(servicesWithSchema), { rootDir })
 
-    const plan = args.outdir
-      ? await planFragmentedOutput(resolvedOpenAPIServices, rootDir, args.outdir)
-      : await planSingleFileOutput(resolvedOpenAPIServices, rootDir, args.outfile)
+    const plan = planGeneration(dts, {
+      rootDir,
+      outfile: args.outfile,
+      outdir: args.outdir,
+      existingFragments: args.outdir
+        ? await readDirectory(fragmentDirectoryFor(rootDir, args.outdir))
+        : undefined,
+    })
 
     if (args.check) {
-      const drift = await findDrift(plan, rootDir)
+      const drift = findDrift(plan, await readPlannedFiles(plan), rootDir)
 
       if (drift.length > 0) {
         throw new CliError(
@@ -108,58 +98,6 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
 
 export default command
 
-async function planSingleFileOutput(
-  services: Record<string, ServiceOptions>,
-  rootDir: string,
-  outfile: string | undefined,
-): Promise<GenerationPlan> {
-  const outfilePath = path.resolve(rootDir, outfile || DEFAULT_OUTFILE)
-  const types = await generateDTS(services, { rootDir })
-  const serviceCount = Object.keys(services).length
-
-  return {
-    files: new Map([[outfilePath, `${GENERATED_FILE_HEADER}${types}`]]),
-    removals: [],
-    directories: [path.dirname(outfilePath)],
-    summary: `OpenAPI types generated in \`${path.relative(rootDir, outfilePath)}\` (${serviceCount} ${pluralizeServices(serviceCount)})`,
-  }
-}
-
-async function planFragmentedOutput(
-  services: Record<string, ServiceOptions>,
-  rootDir: string,
-  outdir: string,
-): Promise<GenerationPlan> {
-  const { entry, modules } = await generateDTSModules(services, { rootDir })
-  const fragments = Object.entries(modules)
-
-  const outputDir = path.resolve(rootDir, outdir)
-  const entryFilePath = path.join(outputDir, DEFAULT_OUTFILE)
-  const fragmentDir = path.join(outputDir, 'schema')
-
-  const files = new Map<string, string>()
-  const references: string[] = []
-
-  for (const [id, contents] of fragments) {
-    const fragmentPath = path.join(fragmentDir, `${id}.d.ts`)
-    files.set(fragmentPath, `${GENERATED_FILE_HEADER}${contents}`)
-    references.push(`/// <reference path="${toReferencePath(path.dirname(entryFilePath), fragmentPath)}" />`)
-  }
-
-  files.set(entryFilePath, references.length > 0
-    ? `${GENERATED_FILE_HEADER}${references.join('\n')}\n\n${entry}`
-    : `${GENERATED_FILE_HEADER}${entry}`)
-
-  const relativeOutdir = path.relative(rootDir, outputDir) || '.'
-
-  return {
-    files,
-    removals: await findStaleFragments(fragmentDir, fragments.map(([id]) => `${id}.d.ts`)),
-    directories: fragments.length > 0 ? [fragmentDir] : [outputDir],
-    summary: `OpenAPI types generated in \`${relativeOutdir}/\` (entry + ${fragments.length} ${pluralizeServices(fragments.length)})`,
-  }
-}
-
 async function applyPlan({ files, removals, directories }: GenerationPlan): Promise<void> {
   for (const directory of directories)
     await fsp.mkdir(directory, { recursive: true })
@@ -168,54 +106,28 @@ async function applyPlan({ files, removals, directories }: GenerationPlan): Prom
   await Promise.all([...files].map(([filePath, contents]) => fsp.writeFile(filePath, contents)))
 }
 
-/**
- * Compares a plan against the files already on disk, and describes each way they
- * disagree. An empty list is what `--check` is looking for.
- */
-async function findDrift({ files, removals }: GenerationPlan, rootDir: string): Promise<string[]> {
-  const drift: string[] = []
+/** Contents of every file in a directory, keyed by file name. Empty where the directory is absent. */
+async function readDirectory(directory: string): Promise<Map<string, string>> {
+  const fileNames = await fsp.readdir(directory).catch(() => [])
 
-  for (const [filePath, contents] of files) {
-    const current = await fsp.readFile(filePath, 'utf-8').catch(() => undefined)
+  const entries = await Promise.all(fileNames.map(async (fileName) => {
+    const contents = await fsp.readFile(path.join(directory, fileName), 'utf-8').catch(() => undefined)
+    return [fileName, contents] as const
+  }))
 
-    if (current === undefined)
-      drift.push(`missing: ${path.relative(rootDir, filePath)}`)
-    else if (current !== contents)
-      drift.push(`out of date: ${path.relative(rootDir, filePath)}`)
-  }
-
-  for (const filePath of removals)
-    drift.push(`no longer configured: ${path.relative(rootDir, filePath)}`)
-
-  return drift
-}
-
-function toReferencePath(from: string, to: string): string {
-  return path.relative(from, to).split(path.sep).join('/')
-}
-
-/**
- * Finds the fragments of services the configuration no longer lists. Only a file
- * carrying the generated header counts, since `--outdir` may point at a directory
- * whose other contents belong to the project.
- */
-async function findStaleFragments(fragmentDir: string, currentFileNames: string[]): Promise<string[]> {
-  const entries = await fsp.readdir(fragmentDir).catch(() => [])
-  const current = new Set(currentFileNames)
-
-  const candidates = await Promise.all(
-    entries
-      .filter(name => name.endsWith('.d.ts') && !current.has(name))
-      .map(async (name) => {
-        const filePath = path.join(fragmentDir, name)
-        const contents = await fsp.readFile(filePath, 'utf-8').catch(() => '')
-        return contents.startsWith(GENERATED_FILE_HEADER) ? filePath : undefined
-      }),
+  return new Map(
+    entries.filter((entry): entry is [string, string] => entry[1] !== undefined),
   )
-
-  return candidates.filter(filePath => filePath !== undefined)
 }
 
-function pluralizeServices(count: number): string {
-  return count === 1 ? 'service' : 'services'
+/** Contents of the files a plan would write, leaving out those that are not there yet. */
+async function readPlannedFiles({ files }: GenerationPlan): Promise<Map<string, string>> {
+  const entries = await Promise.all([...files.keys()].map(async (filePath) => {
+    const contents = await fsp.readFile(filePath, 'utf-8').catch(() => undefined)
+    return [filePath, contents] as const
+  }))
+
+  return new Map(
+    entries.filter((entry): entry is [string, string] => entry[1] !== undefined),
+  )
 }

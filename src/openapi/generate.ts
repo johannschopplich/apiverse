@@ -26,7 +26,11 @@ export async function generateDTS(
   services: Record<string, ServiceOptions>,
   options: GenerateOptions = {},
 ): Promise<string> {
-  const { entry, modules } = await generateDTSModules(services, options)
+  return joinDTSModules(await generateDTSModules(services, options))
+}
+
+/** Runs the entry and the per-service modules together into the single file `generateDTS` returns. */
+export function joinDTSModules({ entry, modules }: DTSModuleOutput): string {
   const moduleContent = Object.values(modules).join('\n\n')
   return moduleContent ? `${entry}\n${moduleContent}` : entry
 }
