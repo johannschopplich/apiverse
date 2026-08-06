@@ -1,7 +1,22 @@
-import type { OpenAPISchemaRepository, PetStore, PetStoreModel } from 'apiful/schema'
+import type { OpenAPISchemaRepository, PetStore, PetStoreModel, TestEcho } from 'apiful/schema'
 import type { components as Components } from 'apiful/schema/petStore'
+import type { components as TestEchoComponents } from 'apiful/schema/testEcho'
 import type { SchemaPaths } from '../../src/openapi/client'
+import type { FetchResponseError } from '../../src/openapi/types'
 import { describe, expectTypeOf, it } from 'vitest'
+
+// eslint-disable-next-line test/prefer-lowercase-title
+describe('FetchResponseError', () => {
+  it('types the thrown data from the error responses the schema declares', () => {
+    expectTypeOf<FetchResponseError<TestEcho<'/echo/request', 'post'>['operation']>['data']>()
+      .toEqualTypeOf<TestEchoComponents['schemas']['Error'] | undefined>()
+  })
+
+  it('types the thrown data as undefined for error responses that carry no content', () => {
+    expectTypeOf<FetchResponseError<PetStore<'/pet/{petId}', 'get'>['operation']>['data']>()
+      .toEqualTypeOf<undefined>()
+  })
+})
 
 // eslint-disable-next-line test/prefer-lowercase-title
 describe('SchemaPaths', () => {
