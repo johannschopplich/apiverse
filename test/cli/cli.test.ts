@@ -86,6 +86,63 @@ describe('apiful CLI', () => {
       expect(stderr).toContain('schema')
     })
 
+    it('--check exits with code 1 for type definitions that were never generated', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+      })
+
+      const { exitCode, stderr } = await runCli(['generate', `--root=${directory}`, '--check'])
+
+      expect(exitCode).toBe(1)
+      expect(stderr).toContain('apiful.d.ts')
+      await expect(fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8')).rejects.toThrow()
+    })
+
+    it('--check leaves an outdated type definition file unchanged', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+        'apiful.d.ts': `${GENERATED_FILE_HEADER}declare module 'apiful/schema/stale' {}\n`,
+      })
+
+      const { exitCode } = await runCli(['generate', `--root=${directory}`, '--check'])
+
+      expect(exitCode).toBe(1)
+      await expect(fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8'))
+        .resolves
+        .toContain('apiful/schema/stale')
+    })
+
+    it('--check passes for type definitions that are already current', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+      })
+
+      await runCli(['generate', `--root=${directory}`])
+      const { exitCode } = await runCli(['generate', `--root=${directory}`, '--check'])
+
+      expect(exitCode).toBeUndefined()
+    })
+
+    it('--check reports a fragment the configuration no longer lists', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+      })
+
+      await runCli(['generate', `--root=${directory}`, '--outdir=generated'])
+      const stalePath = path.join(directory, 'generated/schema/removedService.d.ts')
+      await fsp.writeFile(stalePath, `${GENERATED_FILE_HEADER}declare module 'apiful/schema/removedService' {}\n`)
+
+      const { exitCode, stderr } = await runCli(['generate', `--root=${directory}`, '--outdir=generated', '--check'])
+
+      expect(exitCode).toBe(1)
+      expect(stderr).toContain('removedService.d.ts')
+      await expect(fsp.readFile(stalePath, 'utf-8')).resolves.toContain('removedService')
+    })
+
     it('writes an entry file referencing one fragment per service with --outdir', async () => {
       const directory = createDirectory({
         'apiful.config.ts': CONFIG,

@@ -39,7 +39,7 @@ A schema that cannot be read or parsed fails the whole run: the command reports 
 A service with no `schema` has nothing to generate from, so the run skips it and names it in a warning. Every other service is still generated, and the run succeeds.
 
 > [!NOTE]
-> Commit the generated `apiful.d.ts` file to version control so all team members have access to the same types. For optimal developer experience, consider integrating the generate command into your package.json scripts and running it in pre-commit hooks or CI pipelines to ensure types stay synchronized with schema changes.
+> Commit the generated `apiful.d.ts` file to version control so all team members have access to the same types, and run [`--check`](#keeping-generated-types-current) in CI so a schema change cannot land without them.
 
 <<< @/snippets/generate.ansi
 
@@ -55,6 +55,22 @@ This displays the following output:
 
 > [!NOTE]
 > Although it's recommended to create an `apiful.config.ts` file with a [`defineApifulConfig`](/reference/define-apiful-config) default export, you can also write plain JavaScript (`.js`, `.mjs`, `.cjs`) or JSON (`.json`, `.json5`) configuration files.
+
+#### Keeping Generated Types Current
+
+The generated file is a build artifact you commit, which means it can fall behind the schema it came from. `--check` catches that: it generates into memory, compares the result against the files on disk, and writes nothing.
+
+```sh
+npx apiful generate --check
+```
+
+The command exits with code `0` when the files already match, and with code `1` when they do not – listing each file that is missing, out of date, or left over from a service the configuration no longer lists. That makes it a CI step:
+
+```yaml
+- run: npx apiful generate --check
+```
+
+`--check` combines with `--outfile` and `--outdir`, so it verifies whichever layout you generate.
 
 #### Fragmented Output
 
