@@ -25,6 +25,5 @@ jobs:
       - run: pnpm run test:types
       - run: pnpm run test
 
-      # Generates against the CLI the suite just proved, then type-checks what came out.
       - run: pnpm run playground:generate
       - run: pnpm run playground:types

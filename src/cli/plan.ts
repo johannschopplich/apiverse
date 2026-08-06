@@ -34,12 +34,12 @@ export function fragmentDirectoryFor(rootDir: string, outdir: string): string {
 }
 
 /** Decides everything a run would change on disk, without touching any of it. */
-export function planGeneration(dts: DTSFragmentOutput, options: PlanOptions): GenerationPlan {
+export function planGeneration(dtsOutput: DTSFragmentOutput, options: PlanOptions): GenerationPlan {
   const { outdir } = options
 
   return outdir
-    ? planFragmentedOutput(dts, { ...options, outdir })
-    : planSingleFileOutput(dts, options)
+    ? planFragmentedOutput(dtsOutput, { ...options, outdir })
+    : planSingleFileOutput(dtsOutput, options)
 }
 
 /**
@@ -69,12 +69,12 @@ export function findDrift(
   return drift
 }
 
-function planSingleFileOutput(dts: DTSFragmentOutput, { rootDir, outfile }: PlanOptions): GenerationPlan {
+function planSingleFileOutput(dtsOutput: DTSFragmentOutput, { rootDir, outfile }: PlanOptions): GenerationPlan {
   const outfilePath = path.resolve(rootDir, outfile || DEFAULT_OUTFILE)
-  const serviceCount = Object.keys(dts.fragments).length
+  const serviceCount = Object.keys(dtsOutput.fragments).length
 
   return {
-    files: new Map([[outfilePath, `${GENERATED_FILE_HEADER}${joinDTSFragments(dts)}`]]),
+    files: new Map([[outfilePath, `${GENERATED_FILE_HEADER}${joinDTSFragments(dtsOutput)}`]]),
     removals: [],
     directories: [path.dirname(outfilePath)],
     summary: `OpenAPI types generated in \`${path.relative(rootDir, outfilePath)}\` (${serviceCount} ${pluralizeServices(serviceCount)})`,

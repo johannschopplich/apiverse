@@ -67,9 +67,9 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
       return
     }
 
-    const dts = await generateDTSFragments(Object.fromEntries(servicesWithSchema), { rootDir })
+    const dtsOutput = await generateDTSFragments(Object.fromEntries(servicesWithSchema), { rootDir })
 
-    const plan = planGeneration(dts, {
+    const plan = planGeneration(dtsOutput, {
       rootDir,
       outfile: args.outfile,
       outdir: args.outdir,
@@ -79,7 +79,7 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
     })
 
     if (args.check) {
-      const drift = findDrift(plan, await readPlannedFiles(plan), rootDir)
+      const drift = findDrift(plan, await readFiles([...plan.files.keys()]), rootDir)
 
       if (drift.length > 0) {
         throw new CliError(
@@ -106,13 +106,11 @@ async function applyPlan({ files, removals, directories }: GenerationPlan): Prom
   await Promise.all([...files].map(([filePath, contents]) => fsp.writeFile(filePath, contents)))
 }
 
-/** Reads every file in a directory into a map keyed by file name. Empty where the directory is absent. */
-async function readDirectory(directory: string): Promise<Map<string, string>> {
-  const fileNames = await fsp.readdir(directory).catch(() => [])
-
-  const entries = await Promise.all(fileNames.map(async (fileName) => {
-    const contents = await fsp.readFile(path.join(directory, fileName), 'utf-8').catch(() => undefined)
-    return [fileName, contents] as const
+/** Reads each path into a map keyed by that path, leaving out the files that are not there. */
+async function readFiles(filePaths: string[]): Promise<Map<string, string>> {
+  const entries = await Promise.all(filePaths.map(async (filePath) => {
+    const contents = await fsp.readFile(filePath, 'utf-8').catch(() => undefined)
+    return [filePath, contents] as const
   }))
 
   return new Map(
@@ -120,14 +118,12 @@ async function readDirectory(directory: string): Promise<Map<string, string>> {
   )
 }
 
-/** Reads the files a plan would write, leaving out those that are not there yet. */
-async function readPlannedFiles({ files }: GenerationPlan): Promise<Map<string, string>> {
-  const entries = await Promise.all([...files.keys()].map(async (filePath) => {
-    const contents = await fsp.readFile(filePath, 'utf-8').catch(() => undefined)
-    return [filePath, contents] as const
-  }))
+/** Reads every file in a directory into a map keyed by file name. Empty where the directory is absent. */
+async function readDirectory(directory: string): Promise<Map<string, string>> {
+  const fileNames = await fsp.readdir(directory).catch(() => [])
+  const contents = await readFiles(fileNames.map(fileName => path.join(directory, fileName)))
 
   return new Map(
-    entries.filter((entry): entry is [string, string] => entry[1] !== undefined),
+    [...contents].map(([filePath, text]) => [path.basename(filePath), text]),
   )
 }

@@ -36,7 +36,7 @@ describe('planGeneration', () => {
     expect(directories).toEqual([path.join(ROOT, 'types/nested')])
   })
 
-  it('reports the outfile path and the service count', () => {
+  it('summarizes the outfile path with the service count pluralized', () => {
     expect(planGeneration(DTS, { rootDir: ROOT }).summary)
       .toBe('OpenAPI types generated in `apiful.d.ts` (2 services)')
     expect(planGeneration(SINGLE_SERVICE_DTS, { rootDir: ROOT }).summary)
@@ -68,7 +68,7 @@ describe('planGeneration', () => {
       .toEqual([path.join(ROOT, 'generated/schema')])
   })
 
-  it('names the output directory instead when no service is listed', () => {
+  it('names the output directory rather than the fragment directory when no service is listed', () => {
     const empty: DTSFragmentOutput = { entry: DTS.entry, fragments: {} }
     const { files, directories, summary } = planGeneration(empty, { rootDir: ROOT, outdir: 'generated' })
 
@@ -114,7 +114,7 @@ describe('planGeneration', () => {
 })
 
 describe('fragmentDirectoryFor', () => {
-  it('resolves --outdir against the root and appends schema', () => {
+  it('resolves --outdir against the root and appends `schema`', () => {
     expect(fragmentDirectoryFor(ROOT, 'generated')).toBe(path.join(ROOT, 'generated/schema'))
   })
 })
