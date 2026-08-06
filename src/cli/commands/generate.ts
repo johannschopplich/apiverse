@@ -47,9 +47,16 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
       throw new CliError('Configuration file `apiful.config.{js,ts,mjs,cjs,json}` is empty or does not exist')
     }
 
+    const services = Object.entries(config?.services ?? {})
+    const servicesWithoutSchema = services.filter(([, service]) => !service.schema)
+
+    if (servicesWithoutSchema.length > 0) {
+      const names = servicesWithoutSchema.map(([name]) => `\`${name}\``).join(', ')
+      log.warn(`No \`schema\` set for ${names}, skipping`)
+    }
+
     const resolvedOpenAPIServices = Object.fromEntries(
-      Object.entries(config?.services ?? {})
-        .filter(([, service]) => Boolean(service.schema)),
+      services.filter(([, service]) => Boolean(service.schema)),
     )
 
     if (Object.keys(resolvedOpenAPIServices).length === 0) {

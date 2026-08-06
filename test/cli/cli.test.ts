@@ -73,6 +73,19 @@ describe('apiful CLI', () => {
       await expect(fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8')).rejects.toThrow()
     })
 
+    it('warns about a service configured without a schema', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': `export default { services: { petStore: { schema: 'schemas/pet-store.json' }, forgotten: {} } }\n`,
+        'schemas/pet-store.json': SCHEMA,
+      })
+
+      const { exitCode, stderr } = await runCli(['generate', `--root=${directory}`])
+
+      expect(exitCode).toBeUndefined()
+      expect(stderr).toContain('forgotten')
+      expect(stderr).toContain('schema')
+    })
+
     it('writes an entry file referencing one fragment per service with --outdir', async () => {
       const directory = createDirectory({
         'apiful.config.ts': CONFIG,
