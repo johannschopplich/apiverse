@@ -1,6 +1,6 @@
 # `createClient`
 
-Heart of APIful. Creates an [`ApiClient`](/reference/api-client) instance with the given default options.
+Creates an [`ApiClient`](/reference/api-client) from a set of default fetch options. Every APIful client starts here; the extensions you chain onto it decide how you write a request.
 
 ## Example
 
