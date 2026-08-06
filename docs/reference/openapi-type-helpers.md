@@ -45,9 +45,9 @@ Every endpoint type provides these essential properties that give you complete c
 |----------|-------------|---------|
 | `path` | Path parameters extracted from URL segments enclosed in braces | `{ petId: number }` |
 | `query` | Query string parameters that can be appended to the URL | `{ status?: 'available' \| 'pending' \| 'sold' }` |
-| `request` | Request body, for whichever media type the operation declares | `{ name: string, photoUrls: string[] }` |
-| `response` | Body of the successful response, for whichever 2xx status the operation declares | `{ id?: number, name: string }` |
-| `responses` | Map of every status code the operation declares to the body it returns | `{ 200: Pet, 400: undefined, 404: undefined }` |
+| `request` | Request body, for whichever media type the operation declares | `{ name: string; photoUrls: string[] }` |
+| `response` | Body of the successful response, for whichever 2xx status the operation declares | `{ id?: number; name: string }` |
+| `responses` | Map of every status code the operation declares to the body it returns | `{ 200: Pet; 400: undefined; 404: undefined }` |
 | `fullPath` | The complete path template as defined in the OpenAPI spec | `'/pet/{petId}'` |
 | `method` | HTTP method verb for the operation | `'get'` |
 | `operation` | Complete OpenAPI operation object with all metadata | Complete operation object |
@@ -125,7 +125,7 @@ type PetMethods = PetStoreApiMethods<'/pet'>
 //   ^? 'post' | 'put'
 ```
 
-Only the methods the path declares are listed. `openapi-typescript` gives every path item a key for all eight verbs and sets the unused ones aside, so reaching for `keyof` yourself would answer with the whole alphabet of HTTP.
+Only the methods the path declares are listed. `openapi-typescript` gives every path item a key for all eight verbs and sets the unused ones aside, so reaching for `keyof` yourself would answer with all eight, plus `parameters`.
 
 ## Schema Model Types
 
