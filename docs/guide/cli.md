@@ -36,7 +36,7 @@ The generated TypeScript types are saved as `apiful.d.ts` in the same directory.
 
 A schema that cannot be read or parsed fails the whole run: the command reports the service it choked on, exits with code `1`, and writes no types, rather than leaving you with a client that compiles and is silently untyped. Add `--verbose` for the underlying cause. Calling the generator from your own code instead of the CLI, the same failure arrives as a `SchemaGenerationError`.
 
-A service with no `schema` has nothing to generate from, so the run skips it and names it in a warning. Every other service is still generated, and the run succeeds.
+A service with no `schema` has nothing to generate from, so the run skips it and names it in a warning. Every other service is still generated, and the run succeeds. In a TypeScript configuration the omission is a type error long before that, since `schema` is required.
 
 > [!NOTE]
 > Commit the generated `apiful.d.ts` file to version control so all team members have access to the same types, and run [`--check`](#keeping-generated-types-current) in CI so a schema change cannot land without them.

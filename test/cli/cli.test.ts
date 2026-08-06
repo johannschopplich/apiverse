@@ -126,6 +126,32 @@ describe('apiful CLI', () => {
       expect(exitCode).toBeUndefined()
     })
 
+    it('--check passes for type definitions written to an --outfile path', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+      })
+
+      await runCli(['generate', `--root=${directory}`, '--outfile=types/api.d.ts'])
+      const { exitCode } = await runCli(['generate', `--root=${directory}`, '--outfile=types/api.d.ts', '--check'])
+
+      expect(exitCode).toBeUndefined()
+    })
+
+    it('creates the parent directory of an --outfile path that does not exist yet', async () => {
+      const directory = createDirectory({
+        'apiful.config.ts': CONFIG,
+        'schemas/pet-store.json': SCHEMA,
+      })
+
+      const { exitCode } = await runCli(['generate', `--root=${directory}`, '--outfile=types/nested/api.d.ts'])
+
+      expect(exitCode).toBeUndefined()
+      await expect(fsp.readFile(path.join(directory, 'types/nested/api.d.ts'), 'utf-8'))
+        .resolves
+        .toContain(`declare module 'apiful/schema/petStore'`)
+    })
+
     it('--check reports a fragment the configuration no longer lists', async () => {
       const directory = createDirectory({
         'apiful.config.ts': CONFIG,

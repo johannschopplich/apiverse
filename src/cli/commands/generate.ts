@@ -15,7 +15,7 @@ import { loadConfig } from '../utils.ts'
  * `--check` can compare the plan against what is already there.
  */
 interface GenerationPlan {
-  /** Absolute path to the full contents, for every file the run would write. */
+  /** Full contents keyed by absolute path, for every file the run would write. */
   files: Map<string, string>
   /** Absolute paths of generated files the run would delete. */
   removals: string[]
@@ -120,7 +120,7 @@ async function planSingleFileOutput(
   return {
     files: new Map([[outfilePath, `${GENERATED_FILE_HEADER}${types}`]]),
     removals: [],
-    directories: [],
+    directories: [path.dirname(outfilePath)],
     summary: `OpenAPI types generated in \`${path.relative(rootDir, outfilePath)}\` (${serviceCount} ${pluralizeServices(serviceCount)})`,
   }
 }
@@ -155,7 +155,7 @@ async function planFragmentedOutput(
   return {
     files,
     removals: await findStaleFragments(fragmentDir, fragments.map(([id]) => `${id}.d.ts`)),
-    directories: fragments.length > 0 ? [outputDir, fragmentDir] : [outputDir],
+    directories: fragments.length > 0 ? [fragmentDir] : [outputDir],
     summary: `OpenAPI types generated in \`${relativeOutdir}/\` (entry + ${fragments.length} ${pluralizeServices(fragments.length)})`,
   }
 }
