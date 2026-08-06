@@ -28,20 +28,6 @@ const client = createClient({ baseURL: 'https://api.example.com' })
 
 Written as one chain, which is how the documentation has always shown it, nothing changes. Written as separate statements, the client you kept has no handler, and calling it throws.
 
-The same rule is what makes two clients derived from one base independent. In v4 they shared a single set of extensions, so the second one reached back and replaced the handler of the first:
-
-```ts
-import { createClient, ofetchBuilder, OpenAPIBuilder } from 'apiful'
-
-const base = createClient({ baseURL: 'https://api.example.com' })
-
-const restClient = base.with(ofetchBuilder())
-const petStoreClient = base.with(OpenAPIBuilder<'petStore'>())
-
-// v4: `restClient` had quietly become an OpenAPI client
-// v5: both keep the extension they were given
-```
-
 #### Every Service Needs a `schema`
 
 `schema` is now required. A service without one has nothing to generate from, so it was never more than a placeholder:
@@ -60,20 +46,7 @@ export default defineApifulConfig({
 
 Give every service a schema, or drop it from the configuration. In a TypeScript configuration file this is a type error. In a JavaScript or JSON one it surfaces when you run [`apiful generate`](/guide/cli), which names the services it skips and generates the rest.
 
-#### The `url` Service Option Is Gone
-
-`url` never reached anything – no command read it, and no generated type came out of it. Remove the key; the base URL of a client is the `baseURL` you pass to [`createClient`](/reference/create-client).
-
-```ts
-export default defineApifulConfig({
-  services: {
-    petStore: {
-      url: 'https://petstore3.swagger.io/api/v3', // Remove this
-      schema: 'https://petstore3.swagger.io/api/v3/openapi.json',
-    },
-  },
-})
-```
+The `url` option is gone from the same type. Nothing ever read it, so delete the key if you have one.
 
 ### Behavior That Changed
 
@@ -89,9 +62,7 @@ Add one of the [built-in extensions](/extensions/), or [write your own](/guide/c
 
 #### An Unreadable Schema Fails the Run
 
-A schema the generator could not read or parse used to be reported on the console, after which generation carried on and emitted an empty stub for that service. The types compiled, so the failure only showed up as a client that had quietly lost its typing.
-
-The run now stops:
+A schema the generator could not read or parse used to be logged, after which the run carried on and emitted an empty stub for that service – leaving you with a client that compiled and was silently untyped. The run now stops:
 
 ```
 Failed to generate types for service `petStore` – …
@@ -99,31 +70,13 @@ Failed to generate types for service `petStore` – …
 
 [`apiful generate`](/guide/cli) exits with code `1` and writes no types. Add `--verbose` for the underlying cause. Calling the generator from your own code, the same failure arrives as a `SchemaGenerationError`.
 
-#### Extensions Share One Fetch
-
-Each built-in extension used to build its own `ofetch` instance from `defaultOptions`. The client now holds one instance as `client.fetch`, and every extension issues its requests through it. Nothing changes for a client you create the usual way.
-
-What is new is that you can substitute it – for a transport of your own, or for a recording one in a test:
-
-```ts
-import { createClient, ofetchBuilder } from 'apiful'
-
-const client = createClient(
-  { baseURL: 'https://api.example.com' },
-  { fetch: myFetch },
-).with(ofetchBuilder())
-```
-
-> [!NOTE]
-> Building that instance is also what applies `defaultOptions`, so a fetch you pass in is handed the request as it stands and owns its own options. `baseURL` is the exception: the [API Router](/extensions/api-router) extension reads it off the client to build its routes.
-
 ### Types That Are Now Stricter
 
 These changes touch no runtime behavior. They reach you as compile errors in code that was already asking for something the schema does not offer, and as narrower types where the old ones guessed.
 
 #### Only the Methods a Path Declares
 
-A path used to offer all eight HTTP verbs, because `openapi-typescript` gives every path item a key for each of them. Only the declared ones are listed now:
+A path used to offer all eight HTTP verbs. Only the ones it declares are listed now:
 
 ```ts
 import type { PetStore, PetStoreApiMethods } from 'apiful/schema'
@@ -140,9 +93,7 @@ Where this bites, the schema is the place to look: the method you were reaching 
 
 #### Request and Response Resolve the Way the Client Does
 
-`request` and `response` used to be read straight off the schema, hardcoded to `application/json` and to status `200`. They now go through the same helpers a request goes through, so what the type says and what a call hands back cannot drift apart.
-
-Three things follow from that:
+`request` and `response` used to be hardcoded to `application/json` and to status `200`. They now resolve through the same helpers a call resolves through, so what the type says and what a request hands back cannot drift apart. Three things follow from that:
 
 **A status with no body is `undefined`, not an empty object.**
 
@@ -162,7 +113,7 @@ type PlaceOrderBody = PetStore<'/store/order', 'post'>['request']
 //   ^? v5: Order | undefined
 ```
 
-The same honesty applies to parameters: `path` and `query` are `never` for an operation that declares none, where v4 offered an empty object you could pass around. See [OpenAPI Type Helpers](/reference/openapi-type-helpers) for the full set.
+Parameters follow the same rule: `path` and `query` are `never` for an operation that declares none, where v4 offered an empty object you could pass around. See [OpenAPI Type Helpers](/reference/openapi-type-helpers) for the full set.
 
 ### Renamed Exports
 
