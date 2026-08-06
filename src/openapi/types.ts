@@ -45,12 +45,7 @@ export type OpenAPIFetchOptions<
  * eight verbs and sets the ones the schema leaves out to an optional `never`, so
  * `keyof` alone would answer with every verb there is.
  */
-export type OpenAPIPathMethods<Paths, Path extends keyof Paths> = Exclude<
-  {
-    [Method in keyof Paths[Path]]-?: [Paths[Path][Method]] extends [never] | [undefined] ? never : Method
-  }[keyof Paths[Path]],
-  'parameters'
-> & keyof Paths[Path]
+export type OpenAPIPathMethods<Paths, Path extends keyof Paths> = keyof FilterMethods<Paths[Path]>
 
 /** Path or query parameters of an operation, or `never` where it declares none. */
 export type OpenAPIParameters<Operation, Kind extends 'path' | 'query'> = Operation extends { parameters: infer Parameters }
