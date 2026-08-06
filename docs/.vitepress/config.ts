@@ -41,6 +41,7 @@ export default defineConfig({
           { text: 'Using Extensions', link: '/guide/using-extensions' },
           { text: 'Creating Extensions', link: '/guide/custom-extensions' },
           { text: 'Command Line Interface', link: '/guide/cli' },
+          { text: 'Migration', link: '/guide/migration' },
         ],
       },
       {
@@ -143,6 +144,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         { text: 'Using Extensions', link: '/guide/using-extensions' },
         { text: 'Creating Extensions', link: '/guide/custom-extensions' },
         { text: 'Command Line Interface', link: '/guide/cli' },
+        { text: 'Migration', link: '/guide/migration' },
       ],
     },
     {
