@@ -1,5 +1,5 @@
-import type { OpenAPISchemaRepository, PetStore, PetStoreModel, TestEcho } from 'apiful/schema'
-import type { components as Components } from 'apiful/schema/petStore'
+import type { OpenAPISchemaRepository, PetStore, PetStoreApiMethods, PetStoreApiPaths, PetStoreModel, TestEcho } from 'apiful/schema'
+import type { components as Components, paths as PetStorePaths } from 'apiful/schema/petStore'
 import type { components as TestEchoComponents } from 'apiful/schema/testEcho'
 import type { SchemaPaths } from '../../src/openapi/client'
 import type { FetchResponseError } from '../../src/openapi/types'
@@ -81,6 +81,28 @@ describe('PetStore', () => {
   it('exposes the raw operation object', () => {
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['operation']>().toHaveProperty('parameters')
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['operation']>().toHaveProperty('responses')
+  })
+})
+
+// eslint-disable-next-line test/prefer-lowercase-title
+describe('PetStoreApiPaths', () => {
+  it('lists the paths the schema declares', () => {
+    expectTypeOf<PetStoreApiPaths>().toEqualTypeOf<keyof PetStorePaths>()
+    expectTypeOf<'/pet/{petId}'>().toExtend<PetStoreApiPaths>()
+  })
+})
+
+// eslint-disable-next-line test/prefer-lowercase-title
+describe('PetStoreApiMethods', () => {
+  it('lists only the methods a path declares', () => {
+    expectTypeOf<PetStoreApiMethods<'/pet'>>().toEqualTypeOf<'post' | 'put'>()
+    expectTypeOf<PetStoreApiMethods<'/pet/{petId}'>>().toEqualTypeOf<'get' | 'post' | 'delete'>()
+    expectTypeOf<PetStoreApiMethods<'/pet/findByStatus'>>().toEqualTypeOf<'get'>()
+  })
+
+  it('rejects a method the path leaves undeclared', () => {
+    // @ts-expect-error: `/pet` declares `post` and `put`, and no `get`.
+    expectTypeOf<PetStore<'/pet', 'get'>>().not.toBeNever()
   })
 })
 

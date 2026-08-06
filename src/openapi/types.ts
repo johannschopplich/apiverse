@@ -39,6 +39,18 @@ export type OpenAPIFetchOptions<
   & RequestBodyOption<Operation>
   & Omit<FetchOptions, 'query' | 'body' | 'method'>
 
+/**
+ * Methods the path declares. `openapi-typescript` gives a path item a key for all
+ * eight verbs and sets the ones the schema leaves out to an optional `never`, so
+ * `keyof` alone would answer with every verb there is.
+ */
+export type OpenAPIPathMethods<Paths, Path extends keyof Paths> = Exclude<
+  {
+    [Method in keyof Paths[Path]]-?: [Paths[Path][Method]] extends [never] | [undefined] ? never : Method
+  }[keyof Paths[Path]],
+  'parameters'
+> & keyof Paths[Path]
+
 export type OpenAPIClient<Paths> = <
   ReqT extends Extract<keyof Paths, string>,
   Methods extends FilterMethods<Paths[ReqT]>,

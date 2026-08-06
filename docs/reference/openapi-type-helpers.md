@@ -35,6 +35,8 @@ type Response = UserEndpoint['response'] // Success response (200)
 type ErrorResponse = UserEndpoint['responses'][404] // Specific status code
 ```
 
+Both parameters are required, and both are checked against the schema. A path the service doesn't declare is a compile error, and so is a method the path doesn't allow – `PetStore<'/pet', 'get'>` doesn't compile, because the Petstore declares only `post` and `put` there.
+
 ## Core Type Properties
 
 Every endpoint type provides these essential properties that give you complete control over API interactions. These properties are automatically inferred from your OpenAPI schema:
@@ -109,8 +111,10 @@ type AllPaths = PetStoreApiPaths
 
 // Get all available methods for a specific path
 type PetMethods = PetStoreApiMethods<'/pet'>
-//   ^? 'get' | 'post' | 'put'
+//   ^? 'post' | 'put'
 ```
+
+Only the methods the path declares are listed. `openapi-typescript` gives every path item a key for all eight verbs and sets the unused ones aside, so reaching for `keyof` yourself would answer with the whole alphabet of HTTP.
 
 ## Schema Model Types
 

@@ -82,7 +82,7 @@ export async function generateDTSModules(
  */
 export type ${pascalCase(id)}<
   Path extends keyof ${pascalCase(id)}Paths,
-  Method extends PathMethods<${pascalCase(id)}Paths, Path> = PathMethods<${pascalCase(id)}Paths, Path> extends string ? PathMethods<${pascalCase(id)}Paths, Path> : never
+  Method extends OpenAPIPathMethods<${pascalCase(id)}Paths, Path>
 > = {
   path: ${pascalCase(id)}Paths[Path][Method] extends { parameters?: { path?: infer P } } ? P : Record<string, never>
 
@@ -126,7 +126,7 @@ export type ${pascalCase(id)}ApiPaths = keyof ${pascalCase(id)}Paths
  * @example
  * type UserMethods = ${pascalCase(id)}ApiMethods<'/users/{id}'> // Returns 'get' | 'put' | 'delete' etc.
  */
-export type ${pascalCase(id)}ApiMethods<P extends keyof ${pascalCase(id)}Paths> = PathMethods<${pascalCase(id)}Paths, P>
+export type ${pascalCase(id)}ApiMethods<Path extends keyof ${pascalCase(id)}Paths> = OpenAPIPathMethods<${pascalCase(id)}Paths, Path>
 
 /**
  * @example
@@ -151,14 +151,12 @@ ${normalizeIndentation(types).trimEnd()}
 
   const entry = `
 declare module 'apiful/schema' {
+  import { OpenAPIPathMethods } from 'apiful/openapi'
 ${servicePathImports}
 
   interface OpenAPISchemaRepository {
 ${schemaRepositoryEntries}
   }
-
-  type NonNeverKeys<T> = { [K in keyof T]: T[K] extends never ? never : K }[keyof T]
-  type PathMethods<T, P extends keyof T> = Exclude<NonNeverKeys<T[P]>, 'parameters'>
 
 ${applyLineIndent(typeExports)}
 }
