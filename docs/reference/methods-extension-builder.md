@@ -9,8 +9,6 @@ Extensions that add additional methods to the client.
 
 ```ts
 type MethodsExtension = Record<string, unknown>
-
-// Use this type to create extensions
 type MethodsExtensionBuilder = (client: ApiClient) => MethodsExtension
 ```
 

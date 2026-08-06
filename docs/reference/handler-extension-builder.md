@@ -8,9 +8,9 @@ Extensions that add a callable signature to the client.
 ## Type Definition
 
 ```ts
-type HandlerExtension = Fn
+type Fn<T = any> = (...args: any[]) => T
 
-// Use this type to create extensions
+type HandlerExtension = Fn
 type HandlerExtensionBuilder = (client: ApiClient) => HandlerExtension
 ```
 
