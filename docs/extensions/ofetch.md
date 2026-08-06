@@ -3,7 +3,7 @@
 > [!NOTE]
 > This is a [handler extension](/guide/custom-extensions#handler-extension) that wraps [ofetch](https://github.com/unjs/ofetch) under the hood.
 
-This is the shortest way to make requests with APIful: an [ofetch](https://github.com/unjs/ofetch) instance created from your client's default options. If you know `fetch`, you know this extension – ofetch adds JSON serialization, response parsing, thrown errors for non-2xx responses, retries and request hooks on top of it.
+This is the shortest way to make requests with APIful: an [ofetch](https://github.com/unjs/ofetch) instance created from your client's default options. If you know `fetch`, you know this extension – ofetch adds JSON serialization, response parsing, thrown errors for non-2xx responses, retries, and request hooks on top of it.
 
 Import the `ofetchBuilder` extension and add it to your client:
 
