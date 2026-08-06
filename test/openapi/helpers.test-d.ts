@@ -5,7 +5,6 @@ import type { SchemaPaths } from '../../src/openapi/client'
 import type { FetchResponseData, FetchResponseError } from '../../src/openapi/types'
 import { describe, expectTypeOf, it } from 'vitest'
 
-// eslint-disable-next-line test/prefer-lowercase-title
 describe('FetchResponseError', () => {
   it('types the thrown data from the error responses the schema declares', () => {
     expectTypeOf<FetchResponseError<TestEcho<'/echo/request', 'post'>['operation']>['data']>()
@@ -18,7 +17,6 @@ describe('FetchResponseError', () => {
   })
 })
 
-// eslint-disable-next-line test/prefer-lowercase-title
 describe('SchemaPaths', () => {
   it('resolves existing schema keys to their types', () => {
     expectTypeOf<SchemaPaths<'petStore'>>().toEqualTypeOf<OpenAPISchemaRepository['petStore']>()
@@ -30,7 +28,6 @@ describe('SchemaPaths', () => {
   })
 })
 
-// eslint-disable-next-line test/prefer-lowercase-title
 describe('PetStore', () => {
   it('extracts the path parameter types of a templated path', () => {
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['path']>().toEqualTypeOf<{ petId: number }>()
@@ -113,7 +110,6 @@ describe('PetStore', () => {
   })
 })
 
-// eslint-disable-next-line test/prefer-lowercase-title
 describe('PetStoreApiPaths', () => {
   it('lists the paths the schema declares', () => {
     expectTypeOf<PetStoreApiPaths>().toEqualTypeOf<keyof PetStorePaths>()
@@ -121,7 +117,6 @@ describe('PetStoreApiPaths', () => {
   })
 })
 
-// eslint-disable-next-line test/prefer-lowercase-title
 describe('PetStoreApiMethods', () => {
   it('lists only the methods a path declares', () => {
     expectTypeOf<PetStoreApiMethods<'/pet'>>().toEqualTypeOf<'post' | 'put'>()
@@ -135,7 +130,6 @@ describe('PetStoreApiMethods', () => {
   })
 })
 
-// eslint-disable-next-line test/prefer-lowercase-title
 describe('PetStoreModel', () => {
   it('extracts a schema model by name', () => {
     expectTypeOf<PetStoreModel<'Pet'>>().toEqualTypeOf<Components['schemas']['Pet']>()
