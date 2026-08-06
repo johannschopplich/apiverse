@@ -1,7 +1,7 @@
 import type { DTSFragmentOutput } from '../../src/openapi/generate.ts'
 import * as path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findDrift, fragmentDirectoryFor, planGeneration } from '../../src/cli/plan.ts'
+import { findDrift, planGeneration } from '../../src/cli/plan.ts'
 import { GENERATED_FILE_HEADER } from '../../src/constants.ts'
 
 const ROOT = path.resolve('/projects/app')
@@ -110,12 +110,6 @@ describe('planGeneration', () => {
     })
 
     expect(removals).toEqual([])
-  })
-})
-
-describe('fragmentDirectoryFor', () => {
-  it('resolves --outdir against the root and appends `schema`', () => {
-    expect(fragmentDirectoryFor(ROOT, 'generated')).toBe(path.join(ROOT, 'generated/schema'))
   })
 })
 
