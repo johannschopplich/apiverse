@@ -3,7 +3,7 @@
 > [!NOTE]
 > This is a [handler extension](/guide/custom-extensions#handler-extension) that wraps [ofetch](https://github.com/unjs/ofetch) under the hood.
 
-This built-in extension provides complete type safety for API calls based on OpenAPI schemas. You get full TypeScript support for paths, HTTP methods, request bodies, response types, query parameters, and headers.
+This extension types your requests from an OpenAPI schema: the paths your API declares, the methods each one allows, request bodies, query parameters, headers, and the response you get back. The checking is entirely compile time – the generated types add nothing to your bundle, and nothing validates a request once it leaves your code.
 
 To use this extension, APIful must first generate TypeScript definitions from your OpenAPI schema files.
 
@@ -55,7 +55,7 @@ npx apiful generate
 
 `openapi-typescript` parses the schema, and APIful declares the result as a module that merges into `apiful/schema`. The output is a declaration file, so nothing of it reaches your bundle.
 
-Done! You can now use the `OpenAPIBuilder` extension to create a type-safe API client. Make sure you pass the **service name** to it as a generic parameter, such as `OpenAPIBuilder<'petStore'>()`. Follow the next chapter for more details.
+You can now create a type-safe client with the `OpenAPIBuilder` extension, passing the **service name** as a generic parameter – `OpenAPIBuilder<'petStore'>()`. The [next section](#using-the-openapibuilder-extension) shows it in full.
 
 > [!IMPORTANT]
 > Make sure the generated `apiful.d.ts` file isn't excluded by your `tsconfig.json` configuration. TypeScript needs to find this file to provide typed definitions for your OpenAPI schema.
