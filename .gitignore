@@ -7,3 +7,4 @@ docs/.vitepress/cache
 *.log*
 *.env*
 apiful.d.ts
+!test/fixtures/apiful.d.ts

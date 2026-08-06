@@ -7,7 +7,7 @@ const config: ApifulConfig = defineApifulConfig({
       schema: '../test/fixtures/test-echo-api-schema.yml',
     },
     petStore: {
-      schema: 'schemas/pet-store.json',
+      schema: '../test/fixtures/pet-store-api-schema.json',
     },
   },
 })

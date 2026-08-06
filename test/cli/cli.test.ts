@@ -28,6 +28,8 @@ const SCHEMA = JSON.stringify({
 
 const CONFIG = `export default { services: { petStore: { schema: 'schemas/pet-store.json' } } }\n`
 
+const FIXTURES_DIR = path.join(import.meta.dirname, '../fixtures')
+
 const createDirectory = useTemporaryDirectories()
 
 describe('apiful CLI', () => {
@@ -214,6 +216,14 @@ describe('apiful CLI', () => {
       await expect(fsp.readFile(path.join(directory, 'generated/schema/handwritten.d.ts'), 'utf-8'))
         .resolves
         .toContain('my-own')
+    })
+
+    // Runs against the repository, not a throwaway directory, so a fixture that has drifted
+    // from its schemas fails here rather than as a type error elsewhere. `--check` writes nothing.
+    it('--check passes for the committed apiful.d.ts the type tests resolve against', async () => {
+      const { exitCode } = await runCli(['generate', `--root=${FIXTURES_DIR}`, '--check'])
+
+      expect(exitCode).toBeUndefined()
     })
   })
 })

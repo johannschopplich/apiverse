@@ -79,13 +79,15 @@
     "docs:preview": "vitepress preview docs",
     "generate:http-status-codes": "node scripts/update-http-status-codes.ts",
     "generate:cli-snippets": "node scripts/update-cli-snippets.ts",
+    "generate:test-fixtures": "node src/cli/entry.ts generate --root=\"test/fixtures\"",
+    "playground:generate": "node src/cli/entry.ts generate --root=\"playground\"",
+    "playground:types": "tsc --noEmit -p playground",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest --typecheck",
     "test:types": "tsc --noEmit",
     "release": "bumpp",
-    "prepack": "pnpm run build",
-    "prepare": "node src/cli/entry.ts generate --root=\"playground\""
+    "prepack": "pnpm run build"
   },
   "peerDependencies": {
     "json-schema-to-typescript-lite": "^15.0.0",

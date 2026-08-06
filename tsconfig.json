@@ -14,5 +14,6 @@
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["src", "test", "scripts", "*.ts"]
 }
