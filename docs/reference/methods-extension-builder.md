@@ -8,8 +8,6 @@ Extensions that add additional methods to the client.
 ## Type Definition
 
 ```ts
-// Internal use only
-type Fn<T = any> = (...args: any[]) => T
 type MethodsExtension = Record<string, unknown>
 
 // Use this type to create extensions

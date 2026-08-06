@@ -8,8 +8,6 @@ Extensions that add a callable signature to the client.
 ## Type Definition
 
 ```ts
-// Internal use only
-type Fn<T = any> = (...args: any[]) => T
 type HandlerExtension = Fn
 
 // Use this type to create extensions
