@@ -11,6 +11,9 @@ You can use one of the [built-in extensions](https://apiful.land/guide/using-ext
 > [!TIP]
 > [📖 Read the documentation](https://apiful.land)
 
+> [!NOTE]
+> Upgrading from v4? See the [migration guide](https://apiful.land/guide/migration).
+
 ```bash
 # pnpm
 pnpm add apiful
