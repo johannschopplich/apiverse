@@ -83,7 +83,7 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
 
       if (drift.length > 0) {
         throw new CliError(
-          `OpenAPI types are out of date – run \`apiful generate\` to update them:\n${drift.map(line => `  ${line}`).join('\n')}`,
+          `OpenAPI types are stale – run \`apiful generate\` to update them:\n${drift.map(line => `  ${line}`).join('\n')}`,
         )
       }
 
