@@ -36,12 +36,10 @@ export async function generateDTSModules(
   options: GenerateOptions = {},
 ): Promise<DTSModuleOutput> {
   const resolvedSchemaEntries = await Promise.all(
-    Object.entries(services)
-      .filter(([, service]) => Boolean(service.schema))
-      .map(async ([id, service]) => {
-        const types = await generateSchemaTypes({ id, service, ...options })
-        return [id, types] as const
-      }),
+    Object.entries(services).map(async ([id, service]) => {
+      const types = await generateSchemaTypes({ id, service, ...options })
+      return [id, types] as const
+    }),
   )
 
   const resolvedSchemas = Object.fromEntries(resolvedSchemaEntries)
@@ -183,7 +181,7 @@ async function resolveSchema(
     return pathToFileURL(resolvedPath)
   }
 
-  return schema!
+  return schema
 }
 
 function applyLineIndent(code: string, indent = 2): string {

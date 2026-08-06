@@ -1,7 +1,7 @@
 import type { OpenAPI3, OpenAPITSOptions } from 'openapi-typescript'
 
 export interface ServiceOptions {
-  schema?: string | URL | OpenAPI3 | (() => Promise<OpenAPI3>)
+  schema: string | URL | OpenAPI3 | (() => Promise<OpenAPI3>)
   openAPITS?: OpenAPITSOptions
 }
 
