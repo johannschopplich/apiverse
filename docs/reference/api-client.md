@@ -13,13 +13,16 @@ interface ApiClient<BaseURL extends string = string> extends Function {
   _handler?: Fn
   _extensions: Record<PropertyKey, unknown>
   defaultOptions: ClientOptions<BaseURL>
+  fetch: $Fetch
   with: <Extension extends ApiExtension>(
     createExtension: (client: ApiClient<BaseURL>) => Extension,
   ) => this & Extension
 }
 ```
 
-`ApiExtension` is either a [`HandlerExtension`](/reference/handler-extension-builder), which becomes the client's call signature, or a [`MethodsExtension`](/reference/methods-extension-builder), whose entries become methods on the client. `FetchOptions` comes from [ofetch](https://github.com/unjs/ofetch).
+`ApiExtension` is either a [`HandlerExtension`](/reference/handler-extension-builder), which becomes the client's call signature, or a [`MethodsExtension`](/reference/methods-extension-builder), whose entries become methods on the client. `FetchOptions` and `$Fetch` come from [ofetch](https://github.com/unjs/ofetch).
+
+`fetch` is what every extension makes its requests through. It defaults to an ofetch instance built from `defaultOptions`, and [`createClient`](/reference/create-client#supplying-your-own-fetch) takes one of your own.
 
 Calling a client that has no handler extension throws a `TypeError` – add one with `with`, such as [`ofetchBuilder()`](/extensions/ofetch).
 

@@ -1,32 +1,24 @@
 import type { OpenAPISchemaRepository, PetStore } from 'apiful/schema'
 import type { components } from 'apiful/schema/petStore'
+import type { $Fetch } from 'ofetch'
 import type { ApiClient } from '../../src/client'
 import type { OpenAPIClient } from '../../src/extensions/openapi'
 import type { SchemaPaths } from '../../src/openapi/client'
-import { ofetch } from 'ofetch'
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { createClient, OpenAPIBuilder } from '../../src/index'
 
-vi.mock('ofetch', () => ({
-  ofetch: {
-    create: vi.fn(),
-  },
-}))
+function createRecordedClient() {
+  const fetch = vi.fn()
+  const client = createClient(
+    { baseURL: 'https://petstore3.swagger.io/api/v3' },
+    { fetch: fetch as unknown as $Fetch },
+  )
+
+  return { client, fetch }
+}
 
 // eslint-disable-next-line test/prefer-lowercase-title
 describe('OpenAPIBuilder', () => {
-  const mockFetch = vi.fn()
-  const mockCreate = vi.fn()
-
-  beforeEach(() => {
-    vi.mocked(ofetch.create).mockImplementation(mockCreate)
-    mockCreate.mockReturnValue(mockFetch)
-  })
-
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('takes an ApiClient and returns an OpenAPIClient', () => {
     const builder = OpenAPIBuilder<'petStore'>()
     expectTypeOf(builder).toBeFunction()
@@ -59,8 +51,7 @@ describe('OpenAPIBuilder', () => {
   })
 
   it('types the response by path and method', () => {
-    const client = {} as ApiClient
-    const petStoreClient = OpenAPIBuilder<'petStore'>()(client)
+    const petStoreClient = OpenAPIBuilder<'petStore'>()(createRecordedClient().client)
 
     const getResponse = petStoreClient('/pet/{petId}', {
       method: 'GET',
@@ -121,22 +112,21 @@ describe('OpenAPIBuilder', () => {
       mockResponse: { ...samplePet, id: 456 },
     },
   ])('forwards $name to the underlying fetch and returns the response', async ({ path, options, expectedUrl, expectedOptions, mockResponse }) => {
-    mockFetch.mockResolvedValue(mockResponse)
-    const client = createClient({ baseURL: 'https://petstore3.swagger.io/api/v3' })
-      .with(OpenAPIBuilder<'petStore'>())
+    const { client: baseClient, fetch } = createRecordedClient()
+    fetch.mockResolvedValue(mockResponse)
+    const client = baseClient.with(OpenAPIBuilder<'petStore'>())
 
     const call = client as unknown as (path: string, options?: Record<string, unknown>) => Promise<unknown>
     const response = await call(path, options)
 
     expect(response).toEqual(mockResponse)
-    expect(mockFetch).toHaveBeenCalledWith(expectedUrl, expectedOptions)
+    expect(fetch).toHaveBeenCalledWith(expectedUrl, expectedOptions)
   })
 
   it('rejects when the underlying fetch rejects', async () => {
-    mockFetch.mockRejectedValue(new Error('404 Not Found'))
-
-    const client = createClient({ baseURL: 'https://petstore3.swagger.io/api/v3' })
-      .with(OpenAPIBuilder<'petStore'>())
+    const { client: baseClient, fetch } = createRecordedClient()
+    fetch.mockRejectedValue(new Error('404 Not Found'))
+    const client = baseClient.with(OpenAPIBuilder<'petStore'>())
 
     await expect(() => {
       return client(

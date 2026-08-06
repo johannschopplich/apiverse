@@ -1,7 +1,6 @@
 import type { ApiClient } from '../client.ts'
 import type { SchemaPaths } from '../openapi/index.ts'
 import type { OpenAPIClient } from '../openapi/types.ts'
-import { ofetch } from 'ofetch'
 import { createOpenAPIHandler } from '../openapi/index.ts'
 
 export type * from '../openapi/types.ts'
@@ -11,6 +10,6 @@ export function OpenAPIBuilder<
   Paths = SchemaPaths<Schema>,
 >() {
   return function (client: ApiClient): OpenAPIClient<Paths> {
-    return createOpenAPIHandler<Paths>(ofetch.create(client.defaultOptions))
+    return createOpenAPIHandler<Paths>(client.fetch)
   }
 }

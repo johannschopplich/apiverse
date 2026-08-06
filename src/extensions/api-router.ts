@@ -1,6 +1,5 @@
 import type { FetchOptions, MappedResponseType, ResponseType } from 'ofetch'
 import type { ApiClient } from '../client.ts'
-import { ofetch } from 'ofetch'
 import { joinURL } from 'utilful/path'
 
 const PAYLOAD_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'] as const
@@ -29,7 +28,7 @@ export function apiRouterBuilder() {
   return function (client: ApiClient): ApiRouter {
     // Callable internal target required to use `apply` on it.
     const internalTarget = (() => {}) as ApiRouter
-    const fetchFn = ofetch.create(client.defaultOptions)
+    const fetchFn = client.fetch
 
     function p(url: string): ApiRouter {
       return new Proxy(internalTarget, {

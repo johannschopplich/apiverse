@@ -1,4 +1,5 @@
-import type { FetchOptions } from 'ofetch'
+import type { $Fetch, FetchOptions } from 'ofetch'
+import { ofetch } from 'ofetch'
 
 type Fn<T = any> = (...args: any[]) => T
 
@@ -12,10 +13,20 @@ export type MethodsExtensionBuilder = (client: ApiClient) => MethodsExtension
 /** Fetch options where `baseURL` keeps the literal type `createClient` inferred, rather than widening to `string`. */
 export type ClientOptions<BaseURL extends string = string> = Omit<FetchOptions, 'baseURL'> & { baseURL?: BaseURL }
 
+export interface ClientFactoryOptions {
+  /**
+   * Fetch every extension of the client issues its requests through. Defaults to an
+   * `ofetch` instance built from `defaultOptions`, which is also what applies them – a
+   * fetch given here is asked for the request as it stands and owns its own options.
+   */
+  fetch?: $Fetch
+}
+
 export interface ApiClient<BaseURL extends string = string> extends Function {
   _handler?: Fn
   _extensions: Record<PropertyKey, unknown>
   defaultOptions: ClientOptions<BaseURL>
+  fetch: $Fetch
   with: <Extension extends ApiExtension>(
     createExtension: (client: ApiClient<BaseURL>) => Extension,
   ) => this & Extension
@@ -23,12 +34,14 @@ export interface ApiClient<BaseURL extends string = string> extends Function {
 
 export function createClient<const BaseURL extends string = '/'>(
   defaultOptions: ClientOptions<BaseURL> = {},
+  { fetch = ofetch.create(defaultOptions) }: ClientFactoryOptions = {},
 ): ApiClient<BaseURL> {
   const client = (() => {
     throw new TypeError('This client cannot make requests. Add a handler extension, such as `createClient().with(ofetchBuilder())`.')
   }) as unknown as ApiClient<BaseURL>
 
   client.defaultOptions = defaultOptions
+  client.fetch = fetch
   client._extensions = Object.create(null)
 
   client.with = function <Extension extends ApiExtension>(
