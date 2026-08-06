@@ -78,6 +78,7 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "generate:http-status-codes": "node scripts/update-http-status-codes.ts",
+    "generate:cli-snippets": "node scripts/update-cli-snippets.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest --typecheck",
