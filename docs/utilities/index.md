@@ -16,7 +16,7 @@ Create TypeScript interfaces from JSON data using the [`jsonToTypeDefinition`](/
 
 ## Generic Schema & Validation
 
-Create and validate JSON schemas using the [`jsonSchema`](/utilities/schema) and [`validateTypes`](/utilities/schema) functions. Ensure type safety at runtime using your defined schemas.
+Create and validate JSON schemas using the [`jsonSchema`](/utilities/schema) and [`validateTypes`](/utilities/schema) functions. They stand on their own – the API client never validates a response against a schema for you.
 
 ## Examples
 

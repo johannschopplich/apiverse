@@ -1,6 +1,8 @@
 # Schema & Validation Utilities
 
-Schemas and their validation are a common requirement in API development. APIful provides a comprehensive set of utilities for creating and validating schemas using JSON Schema and TypeScript, providing both type safety and runtime validation.
+Describe a value as JSON Schema, carry its TypeScript type along, and check a value against it at runtime.
+
+These are standalone helpers for your server code. No part of the API client calls them: a schema never reaches a request, and a response is never validated against one. Reach for them where you receive data you did not type – a request body, a webhook payload, a configuration file.
 
 ## Core Concepts
 
