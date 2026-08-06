@@ -1,9 +1,11 @@
 import type { OpenAPISchemaRepository, PetStore, PetStoreApiMethods, PetStoreApiPaths, PetStoreModel, TestEcho } from 'apiful/schema'
-import type { components as Components, paths as PetStorePaths } from 'apiful/schema/petStore'
+import type { components as Components } from 'apiful/schema/petStore'
 import type { components as TestEchoComponents } from 'apiful/schema/testEcho'
-import type { SchemaPaths } from '../../src/openapi/client'
-import type { FetchResponseData, FetchResponseError } from '../../src/openapi/types'
+import type { createOpenAPIClient, SchemaPaths } from '../../src/openapi/client'
+import type { FetchResponseError } from '../../src/openapi/types'
 import { describe, expectTypeOf, it } from 'vitest'
+
+declare const petStoreClient: ReturnType<typeof createOpenAPIClient<'petStore'>>
 
 describe('FetchResponseError', () => {
   it('types the thrown data from the error responses the schema declares', () => {
@@ -82,10 +84,14 @@ describe('PetStore', () => {
   })
 
   it('resolves the response the same way a request through the client does', () => {
-    expectTypeOf<PetStore<'/pet/{petId}', 'get'>['response']>()
-      .toEqualTypeOf<FetchResponseData<PetStore<'/pet/{petId}', 'get'>['operation']>>()
-    expectTypeOf<PetStore<'/pet/{petId}', 'delete'>['response']>()
-      .toEqualTypeOf<FetchResponseData<PetStore<'/pet/{petId}', 'delete'>['operation']>>()
+    expectTypeOf(() => petStoreClient('/pet/{petId}', { method: 'get', path: { petId: 1 } }))
+      .returns
+      .resolves
+      .toEqualTypeOf<PetStore<'/pet/{petId}', 'get'>['response']>()
+    expectTypeOf(() => petStoreClient('/pet/{petId}', { method: 'delete', path: { petId: 1 } }))
+      .returns
+      .resolves
+      .toEqualTypeOf<PetStore<'/pet/{petId}', 'delete'>['response']>()
   })
 
   it('keys the responses by status code', () => {
@@ -108,12 +114,22 @@ describe('PetStore', () => {
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['operation']>().toHaveProperty('parameters')
     expectTypeOf<PetStore<'/pet/{petId}', 'get'>['operation']>().toHaveProperty('responses')
   })
+
+  it('rejects a method the path leaves undeclared', () => {
+    // @ts-expect-error: `/pet` declares `post` and `put`, and no `get`.
+    expectTypeOf<PetStore<'/pet', 'get'>>().not.toBeNever()
+  })
 })
 
 describe('PetStoreApiPaths', () => {
   it('lists the paths the schema declares', () => {
-    expectTypeOf<PetStoreApiPaths>().toEqualTypeOf<keyof PetStorePaths>()
+    expectTypeOf<'/pet'>().toExtend<PetStoreApiPaths>()
     expectTypeOf<'/pet/{petId}'>().toExtend<PetStoreApiPaths>()
+    expectTypeOf<'/store/inventory'>().toExtend<PetStoreApiPaths>()
+  })
+
+  it('leaves out a path the schema does not declare', () => {
+    expectTypeOf<'/pet/{petId}/owner'>().not.toExtend<PetStoreApiPaths>()
   })
 })
 
@@ -122,11 +138,6 @@ describe('PetStoreApiMethods', () => {
     expectTypeOf<PetStoreApiMethods<'/pet'>>().toEqualTypeOf<'post' | 'put'>()
     expectTypeOf<PetStoreApiMethods<'/pet/{petId}'>>().toEqualTypeOf<'get' | 'post' | 'delete'>()
     expectTypeOf<PetStoreApiMethods<'/pet/findByStatus'>>().toEqualTypeOf<'get'>()
-  })
-
-  it('rejects a method the path leaves undeclared', () => {
-    // @ts-expect-error: `/pet` declares `post` and `put`, and no `get`.
-    expectTypeOf<PetStore<'/pet', 'get'>>().not.toBeNever()
   })
 })
 
