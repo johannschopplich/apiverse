@@ -31,7 +31,7 @@ features:
   - icon: <span class="i-carbon:plug"></span>
     title: Built-in Extensions
     details: Includes an ofetch adapter, OpenAPI support, and API router extension.
-    link: /guide/using-extensions#built-in-extensions
+    link: /extensions/
     linkText: Explore Extensions
   - icon: <span class="i-carbon:connect"></span>
     title: Typed Extensibility

@@ -47,15 +47,24 @@ export default defineConfig({
         text: 'Extensions',
         activeMatch: '^/extensions/',
         items: [
+          { text: 'Overview', link: '/extensions/' },
           { text: 'ofetch', link: '/extensions/ofetch' },
           { text: 'OpenAPI', link: '/extensions/openapi' },
           { text: 'API Router', link: '/extensions/api-router' },
         ],
       },
       {
+        text: 'Cookbook',
+        activeMatch: '^/cookbook/',
+        items: [
+          { text: 'Typed Clients for Nitro', link: '/cookbook/typed-nitro-client' },
+        ],
+      },
+      {
         text: 'Reference',
         activeMatch: '^/reference/',
         items: [
+          { text: 'Overview', link: '/reference/' },
           {
             text: 'Methods',
             items: [
@@ -138,6 +147,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
     {
       text: 'Built-in Extensions',
       items: [
+        { text: 'Overview', link: '/extensions/' },
         { text: 'ofetch', link: '/extensions/ofetch' },
         { text: 'OpenAPI', link: '/extensions/openapi' },
         { text: 'API Router', link: '/extensions/api-router' },
@@ -155,6 +165,12 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
 
 function referenceGuide(): DefaultTheme.SidebarItem[] {
   return [
+    {
+      text: 'Reference',
+      items: [
+        { text: 'Overview', link: '/reference/' },
+      ],
+    },
     {
       text: 'Methods',
       items: [

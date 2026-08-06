@@ -1,9 +1,13 @@
 # Built-in Extensions
 
-All extensions included in APIful by default provide a call signature that allows you to make API requests. You can add multiple extensions to a client by chaining the `with` method.
+APIful ships three handler extensions. Each one gives the client a different call signature, so the choice comes down to how you want to write a request:
 
-Depending on your use case and personal preference, you can choose from the following pre-built extensions:
+| Extension | A request looks like | Reach for it when |
+|---|---|---|
+| [ofetch](/extensions/ofetch) | `client('users/1', { method: 'GET' })` | You want `fetch` with less ceremony, or you are just starting out |
+| [OpenAPI](/extensions/openapi) | `client('/user/{username}', { path: { username: 'ada' } })` | Your API publishes an OpenAPI schema and you want paths, bodies and responses typed |
+| [API Router](/extensions/api-router) | `client.users(1).posts.get()` | Your API has deep, predictable REST paths |
 
-- [ofetch](/extensions/ofetch)
-- [OpenAPI](/extensions/openapi)
-- [API Router](/extensions/api-router)
+All three wrap [ofetch](https://github.com/unjs/ofetch), so they share its options, its error behavior and its hooks.
+
+A client takes one handler extension. To combine one of these with methods of your own, chain a [methods extension](/guide/custom-extensions#methods-extension) after it – see [how extensions work](/guide/using-extensions#how-extensions-work).
