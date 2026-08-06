@@ -31,7 +31,7 @@ type UserEndpoint = PetStore<'/user/{username}', 'get'>
 type PathParams = UserEndpoint['path'] // { username: string }
 type QueryParams = UserEndpoint['query'] // Query parameters
 type RequestBody = UserEndpoint['request'] // Request body type
-type Response = UserEndpoint['response'] // Success response (200)
+type Response = UserEndpoint['response'] // Success response
 type ErrorResponse = UserEndpoint['responses'][404] // Specific status code
 ```
 
@@ -44,13 +44,17 @@ Every endpoint type provides these essential properties that give you complete c
 | Property | Description | Example |
 |----------|-------------|---------|
 | `path` | Path parameters extracted from URL segments enclosed in braces | `{ petId: number }` |
-| `query` | Query string parameters that can be appended to the URL | `{ status: 'available' \| 'pending' }` |
-| `request` | Request body type for POST/PUT/PATCH operations | `{ name: string; category: Category }` |
-| `response` | Success response type (typically 200 status code) | `{ id: number; name: string }` |
-| `responses` | Map of all possible HTTP status codes to their response types | `{ 200: Pet; 404: Error; 400: ValidationError }` |
+| `query` | Query string parameters that can be appended to the URL | `{ status?: 'available' \| 'pending' \| 'sold' }` |
+| `request` | Request body, for whichever media type the operation declares | `{ name: string, photoUrls: string[] }` |
+| `response` | Body of the successful response, for whichever 2xx status the operation declares | `{ id?: number, name: string }` |
+| `responses` | Map of every status code the operation declares to the body it returns | `{ 200: Pet, 400: undefined, 404: undefined }` |
 | `fullPath` | The complete path template as defined in the OpenAPI spec | `'/pet/{petId}'` |
 | `method` | HTTP method verb for the operation | `'get'` |
 | `operation` | Complete OpenAPI operation object with all metadata | Complete operation object |
+
+Where an operation declares nothing at all for a property, the type says so rather than inventing an empty object: `path` and `query` are `never`, `request` is `undefined`, and `response` is `never` for an operation whose success carries no body.
+
+`request` and `response` resolve through the same helpers a request resolves through, so a value annotated with `Service<Path, Method>['response']` is exactly what the client hands back for that call.
 
 ## Practical Examples
 
@@ -73,11 +77,18 @@ type StatusQuery = PetStore<'/pet/findByStatus', 'get'>['query']
 
 // Extract request body
 type CreatePetBody = PetStore<'/pet', 'post'>['request']
-//   ^? { id?: number; name: string; category: Category }
+//   ^? { id?: number; name: string; category?: Category; photoUrls: string[]; tags?: Tag[]; status?: 'available' | 'pending' | 'sold' }
 
 // Extract response type
 type PetResponse = PetStore<'/pet/{petId}', 'get'>['response']
-//   ^? { id?: number; name: string; status: string }
+//   ^? { id?: number; name: string; category?: Category; photoUrls: string[]; tags?: Tag[]; status?: 'available' | 'pending' | 'sold' }
+```
+
+A request body the schema marks optional comes back widened with `undefined`, matching what the client accepts:
+
+```ts
+type PlaceOrderBody = PetStore<'/store/order', 'post'>['request']
+//   ^? Order | undefined
 ```
 
 ### Error Response Types
@@ -87,14 +98,14 @@ type PetResponse = PetStore<'/pet/{petId}', 'get'>['response']
 ```ts
 // All responses the endpoint declares
 type AllPetResponses = PetStore<'/pet/{petId}', 'get'>['responses']
-//   ^? { 200: Pet; 400: Record<string, never>; 404: Record<string, never> }
+//   ^? { 200: Pet; 400: undefined; 404: undefined }
 
 // A single status code
 type PetNotFound = PetStore<'/pet/{petId}', 'get'>['responses'][404]
-//   ^? Record<string, never>
+//   ^? undefined
 ```
 
-Only the codes the operation itself declares are available, so `PetStore<'/pet', 'post'>['responses']` offers `200` and `405` and nothing else. A status declared without a response body – which is every error in the Petstore schema – resolves to `Record<string, never>`.
+Only the codes the operation itself declares are available, so `PetStore<'/pet', 'post'>['responses']` offers `200` and `405` and nothing else. A status declared without a response body – which is every error in the Petstore schema – resolves to `undefined`, the same answer the thrown error gives on its `data`.
 
 This is the body a status maps to. To type the error a failed request actually throws, use [`FetchResponseError`](/extensions/openapi#error-responses).
 
@@ -125,7 +136,7 @@ import type { PetStoreModel } from 'apiful/schema'
 
 // Extract schema models directly
 type Pet = PetStoreModel<'Pet'>
-//   ^? { id?: number; name: string; category: Category; photoUrls: string[]; tags?: Tag[]; status?: 'available' | 'pending' | 'sold' }
+//   ^? { id?: number; name: string; category?: Category; photoUrls: string[]; tags?: Tag[]; status?: 'available' | 'pending' | 'sold' }
 
 type Category = PetStoreModel<'Category'>
 //   ^? { id?: number; name?: string }

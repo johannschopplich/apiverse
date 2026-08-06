@@ -83,38 +83,7 @@ export async function generateDTSModules(
 export type ${pascalCase(id)}<
   Path extends keyof ${pascalCase(id)}Paths,
   Method extends OpenAPIPathMethods<${pascalCase(id)}Paths, Path>
-> = {
-  path: ${pascalCase(id)}Paths[Path][Method] extends { parameters?: { path?: infer P } } ? P : Record<string, never>
-
-  query: ${pascalCase(id)}Paths[Path][Method] extends { parameters?: { query?: infer Q } } ? Q : Record<string, never>
-
-  request: ${pascalCase(id)}Paths[Path][Method] extends { requestBody?: { content: { 'application/json': infer R } } } ? R : Record<string, never>
-
-  /** Response body for status 200. */
-  response: ${pascalCase(id)}Paths[Path][Method] extends { responses: infer R }
-    ? 200 extends keyof R
-      ? R[200] extends { content: { 'application/json': infer S } } ? S : Record<string, never>
-      : Record<string, never>
-    : Record<string, never>
-
-  /** Response bodies keyed by status code. */
-  responses: ${pascalCase(id)}Paths[Path][Method] extends { responses: infer T }
-    ? {
-        [Status in keyof T]:
-          T[Status] extends { content: { 'application/json': infer R } }
-            ? R
-            : Record<string, never>
-      }
-    : Record<string, never>
-
-  /** Path literal including its parameter placeholders, for route builders to consume. */
-  fullPath: Path
-
-  method: Method
-
-  /** Raw operation object, carrying metadata such as tags and security requirements. */
-  operation: ${pascalCase(id)}Paths[Path][Method]
-}
+> = OpenAPIEndpoint<${pascalCase(id)}Paths, Path, Method>
 
 /**
  * @example
@@ -151,7 +120,7 @@ ${normalizeIndentation(types).trimEnd()}
 
   const entry = `
 declare module 'apiful/schema' {
-  import { OpenAPIPathMethods } from 'apiful/openapi'
+  import { OpenAPIEndpoint, OpenAPIPathMethods } from 'apiful/openapi'
 ${servicePathImports}
 
   interface OpenAPISchemaRepository {

@@ -53,7 +53,7 @@ Then, run the [`generate`](/guide/cli) command in your terminal to generate the 
 npx apiful generate
 ```
 
-`openapi-typescript` parses the schema, and APIful declares the result as a module that merges into `apiful/schema`. The output is a declaration file, so nothing of it reaches your bundle.
+`openapi-typescript` parses the schema, and APIful declares the result as a module that merges into `apiful/schema`. The output is a declaration file, so nothing of it reaches your bundle. It builds the endpoint helpers on the types APIful itself ships, which is why it imports from `apiful/openapi`.
 
 You can now create a type-safe client with the `OpenAPIBuilder` extension, passing the **service name** as a generic parameter – `OpenAPIBuilder<'petStore'>()`. The [next section](#using-the-openapibuilder-extension) shows it in full.
 
