@@ -15,5 +15,5 @@
     "erasableSyntaxOnly": true,
     "skipLibCheck": true
   },
-  "include": ["src", "test", "scripts", "*.ts"]
+  "include": ["src", "test", "scripts", "docs", "*.ts"]
 }
