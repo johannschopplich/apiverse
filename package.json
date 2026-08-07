@@ -3,7 +3,7 @@
   "type": "module",
   "version": "5.0.0",
   "packageManager": "pnpm@11.20.0",
-  "description": "Extensible & Type-Safe API Tooling",
+  "description": "A fetch client you compose – typed from your OpenAPI schema, no generated client code",
   "author": "Johann Schopplich <hello@johannschopplich.com>",
   "license": "MIT",
   "homepage": "https://apiful.land",
@@ -16,12 +16,14 @@
   },
   "keywords": [
     "api",
-    "client",
-    "http-status-codes",
+    "api-client",
+    "fetch",
     "nitro",
     "ofetch",
-    "routes",
-    "openapi"
+    "openapi",
+    "openapi-typescript",
+    "type-safe",
+    "typescript"
   ],
   "sideEffects": false,
   "exports": {

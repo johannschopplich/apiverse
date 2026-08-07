@@ -1,14 +1,14 @@
 ---
 layout: home
-titleTemplate: Extensible & Type-Safe API Tooling
+titleTemplate: A Fetch Client You Compose
 hero:
   image:
     light: /logo-light.svg
     dark: /logo-dark.svg
     alt: APIful logo
   name: APIful
-  text: Extensible & Type-Safe API Tooling
-  tagline: From generated OpenAPI clients to server-side utilities, for any JavaScript runtime
+  text: A Fetch Client You Compose
+  tagline: Extensions decide the call signature and the types
   actions:
     - theme: brand
       text: Get Started
