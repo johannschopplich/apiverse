@@ -1,7 +1,7 @@
 {
   "name": "apiful",
   "type": "module",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "packageManager": "pnpm@11.20.0",
   "description": "A fetch client you compose – typed from your OpenAPI schema, no generated client code",
   "author": "Johann Schopplich <hello@johannschopplich.com>",
