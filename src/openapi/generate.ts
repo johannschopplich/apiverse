@@ -60,8 +60,46 @@ export async function generateDTSFragments(
     .join('\n')
 
   const typeExports = serviceIds
-    .map((id) => {
-      return [`
+    .map(generateTypeHelpers)
+    .join('\n\n')
+
+  const fragments = Object.fromEntries(
+    Object.entries(resolvedSchemas).map(([id, types]) => {
+      const content = `
+declare module 'apiful/schema/${id}' {
+${normalizeIndentation(types).trimEnd()}
+}
+`.trimStart()
+      return [id, content]
+    }),
+  )
+
+  const entry = `
+declare module 'apiful/schema' {
+  import { OpenAPIEndpoint, OpenAPIPathMethods } from 'apiful/openapi'
+${servicePathImports}
+
+  interface OpenAPISchemaRepository {
+${schemaRepositoryEntries}
+  }
+
+${applyLineIndent(typeExports)}
+}
+`.trimStart()
+
+  return {
+    entry,
+    fragments,
+  }
+}
+
+/**
+ * Emits the type helpers for one service. The emitted code references `<Id>Paths` and
+ * `<Id>Components` along with `OpenAPIEndpoint` and `OpenAPIPathMethods`, none of which it
+ * imports – the module declaration it is placed in brings them into scope.
+ */
+export function generateTypeHelpers(id: string): string {
+  return `
 /**
  * OpenAPI endpoint type helper for the ${pascalCase(id)} API.
  *
@@ -107,44 +145,14 @@ export type ${pascalCase(id)}ApiMethods<Path extends keyof ${pascalCase(id)}Path
  * type User = ${pascalCase(id)}Model<'User'> // Get the User schema model
  */
 export type ${pascalCase(id)}Model<T extends keyof ${pascalCase(id)}Components['schemas']> = ${pascalCase(id)}Components['schemas'][T]
-`.trim()].join('\n')
-    })
-    .join('\n\n')
-
-  const fragments = Object.fromEntries(
-    Object.entries(resolvedSchemas).map(([id, types]) => {
-      const content = `
-declare module 'apiful/schema/${id}' {
-${normalizeIndentation(types).trimEnd()}
-}
-`.trimStart()
-      return [id, content]
-    }),
-  )
-
-  const entry = `
-declare module 'apiful/schema' {
-  import { OpenAPIEndpoint, OpenAPIPathMethods } from 'apiful/openapi'
-${servicePathImports}
-
-  interface OpenAPISchemaRepository {
-${schemaRepositoryEntries}
-  }
-
-${applyLineIndent(typeExports)}
-}
-`.trimStart()
-
-  return {
-    entry,
-    fragments,
-  }
+`.trim()
 }
 
-async function generateSchemaTypes(options: {
+/** Runs `openapi-typescript` for one service and returns its types, without a module declaration around them. */
+export async function generateSchemaTypes(options: {
   id: string
   service: ServiceOptions
-} & GenerateOptions) {
+} & GenerateOptions): Promise<string> {
   const { default: openAPITS, astToString } = await import('openapi-typescript')
     .catch(() => {
       throw new Error('Missing dependency "openapi-typescript", please install it')
