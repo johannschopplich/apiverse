@@ -47,6 +47,10 @@
       "types": "./dist/openapi/client.d.mts",
       "default": "./dist/openapi/client.mjs"
     },
+    "./openapi/types": {
+      "types": "./dist/openapi/types.d.mts",
+      "default": "./dist/openapi/types.mjs"
+    },
     "./schema": {
       "types": "./schema.d.mts",
       "default": "./schema.mjs"
