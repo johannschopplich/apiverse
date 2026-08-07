@@ -15,10 +15,12 @@ interface ApiClient<BaseURL extends string = string> extends Function {
   defaultOptions: ClientOptions<BaseURL>
   fetch: $Fetch
   with: <Extension extends ApiExtension>(
-    createExtension: (client: ApiClient<BaseURL>) => Extension,
+    createExtension: (client: this) => Extension,
   ) => this & Extension
 }
 ```
+
+`createExtension` receives the client as it stands, carrying every extension added before it – see [reaching the client](/guide/custom-extensions#reaching-the-client).
 
 `ApiExtension` is either a [`HandlerExtension`](/reference/handler-extension-builder), which becomes the client's call signature, or a [`MethodsExtension`](/reference/methods-extension-builder), whose entries become methods on the client. `FetchOptions` and `$Fetch` come from [ofetch](https://github.com/unjs/ofetch).
 

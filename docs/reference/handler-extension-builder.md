@@ -3,7 +3,7 @@
 Extensions that add a callable signature to the client.
 
 > [!IMPORTANT]
-> Always use the `satisfies` operator to validate your extension, which preserves the resulting extension type.
+> Use the `satisfies` operator rather than annotating the variable, which preserves the resulting extension type. It types the client as a bare `ApiClient`, so a builder that needs to reach the extensions before it takes the client as a type parameter instead – see [reaching the client](/guide/custom-extensions#reaching-the-client).
 
 ## Type Definition
 

@@ -8,7 +8,7 @@ When none of the [built-in extensions](/extensions/) fits, write your own. An ex
 Both are added with `with`, and the rules for combining them are in [how extensions work](/guide/using-extensions#how-extensions-work).
 
 > [!IMPORTANT]
-> Use `satisfies HandlerExtensionBuilder` or `satisfies MethodsExtensionBuilder` rather than annotating the variable with the type directly. `satisfies` checks the shape while preserving the exact return type, which is what lets the next `.with()` in the chain see your methods.
+> Use `satisfies HandlerExtensionBuilder` or `satisfies MethodsExtensionBuilder` rather than annotating the variable with the type directly. `satisfies` checks the shape while preserving the exact return type, which is what lets the next `.with()` in the chain see your methods. Both type the client as a bare `ApiClient` – to reach the extensions added before yours, see [reaching the client](#reaching-the-client).
 
 ## Handler Extension
 
@@ -55,6 +55,39 @@ const extendedClient = client
 extendedClient.logDefaults() // { baseURL: 'https://api.example.com', headers: { Authorization: 'Bearer <your-bearer-token>' } }
 ```
 
-The builder receives the client, so a method can reach its default options and any extension added before it. That is how you layer behavior on top of a handler extension.
-
 See [`MethodsExtensionBuilder`](/reference/methods-extension-builder) for the type definition.
+
+## Reaching the Client
+
+`with` hands the builder the client as it stands, carrying every extension added before it. Written inline, the types follow along – this method calls through the [`OpenAPIBuilder`](/extensions/openapi) handler one line above it and is typed from the schema:
+
+```ts
+import { createClient, OpenAPIBuilder } from 'apiful'
+
+const api = createClient({ baseURL: 'https://petstore3.swagger.io/api/v3' })
+  .with(OpenAPIBuilder<'petStore'>())
+  .with(client => ({
+    pet: (petId: number) => client('/pet/{petId}', { method: 'GET', path: { petId } }),
+  }))
+
+const pet = await api.pet(1)
+//    ^? { id?: number, name: string, … }
+```
+
+A builder declared on its own has no chain to read from, and both builder types describe their client as a bare `ApiClient`. Annotate the parameter with what the builder actually needs instead, and `with` accepts it wherever the client offers at least that much:
+
+```ts
+import type { OpenAPIClient, SchemaPaths } from 'apiful/openapi'
+
+function petMethods(client: OpenAPIClient<SchemaPaths<'petStore'>>) {
+  return {
+    pet: (petId: number) => client('/pet/{petId}', { method: 'GET', path: { petId } }),
+  }
+}
+
+const api = createClient({ baseURL: 'https://petstore3.swagger.io/api/v3' })
+  .with(OpenAPIBuilder<'petStore'>())
+  .with(petMethods)
+```
+
+The same holds for the other extensions – take an [`ApiRouter`](/extensions/api-router) to reach the router's routes, or an `ApiClient` where `defaultOptions` and `fetch` are all you need. Drop `satisfies` when you do: the parameter is already narrower than the builder type allows, and `with` checks the return value against `ApiExtension` regardless.

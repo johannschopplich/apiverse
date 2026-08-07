@@ -90,6 +90,22 @@ describe('createClient', () => {
     expectTypeOf(extendedClient.typedMethod).toEqualTypeOf<(arg: number) => string>()
   })
 
+  it('passes the handler call signature to the next extension builder', () => {
+    const extendedClient = createClient()
+      .with(() => (path: string): Response => new Response(path))
+      .with(client => ({ home: () => client('/') }))
+
+    expectTypeOf(extendedClient.home).toEqualTypeOf<() => Response>()
+  })
+
+  it('passes an earlier extension\'s methods to the next extension builder', () => {
+    const extendedClient = createClient()
+      .with(() => ({ token: (): string => 'abc' }))
+      .with(client => ({ authorization: () => `Bearer ${client.token()}` }))
+
+    expectTypeOf(extendedClient.authorization).toEqualTypeOf<() => string>()
+  })
+
   it('reflects reassigned extension methods on subsequent calls', () => {
     const client = createClient()
     const extendedClient = client.with(() => ({

@@ -71,6 +71,14 @@ describe('OpenAPIBuilder', () => {
     expectTypeOf(deleteResponse).toEqualTypeOf<Promise<never>>()
   })
 
+  it('passes the typed call signature to the next extension builder', () => {
+    const client = createRecordedClient().client.with(OpenAPIBuilder<'petStore'>()).with(openAPIClient => ({
+      pet: (petId: number) => openAPIClient('/pet/{petId}', { method: 'GET', path: { petId } }),
+    }))
+
+    expectTypeOf(client.pet).toEqualTypeOf<(petId: number) => Promise<PetStore<'/pet/{petId}', 'get'>['response']>>()
+  })
+
   const samplePet: components['schemas']['Pet'] = {
     id: 1,
     name: 'Fluffy',

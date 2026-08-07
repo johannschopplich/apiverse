@@ -28,7 +28,7 @@ export interface ApiClient<BaseURL extends string = string> extends Function {
   defaultOptions: ClientOptions<BaseURL>
   fetch: $Fetch
   with: <Extension extends ApiExtension>(
-    createExtension: (client: ApiClient<BaseURL>) => Extension,
+    createExtension: (client: this) => Extension,
   ) => this & Extension
 }
 
@@ -88,7 +88,7 @@ function createExtendedClient<BaseURL extends string, Extension extends ApiExten
   let client: ApiClient<BaseURL> & Extension
 
   function withExtension<Next extends ApiExtension>(
-    createExtension: (client: ApiClient<BaseURL>) => Next,
+    createExtension: (client: ApiClient<BaseURL> & Extension) => Next,
   ) {
     return addExtension<BaseURL, Next>(base, extensions, handler, createExtension(client))
   }

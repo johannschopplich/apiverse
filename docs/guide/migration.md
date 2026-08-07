@@ -74,6 +74,24 @@ Failed to generate types for service `petStore` – …
 
 These changes touch no runtime behavior. They reach you as compile errors in code that was already asking for something the schema does not offer, and as narrower types where the old ones guessed.
 
+#### An Extension Builder Sees the Extensions Before It
+
+`with` has always handed the builder the client as it stands, but typed that client as the one `createClient` returned. Reaching for a method or a call signature an earlier extension added was a compile error, and where the client happened to be callable the call resolved to `any`. The builder now receives the client it is actually given:
+
+```ts
+const api = createClient({ baseURL: 'https://petstore3.swagger.io/api/v3' })
+  .with(OpenAPIBuilder<'petStore'>())
+  .with(client => ({
+    pet: (petId: number) => client('/pet/{petId}', { method: 'GET', path: { petId } }),
+  }))
+
+const pet = await api.pet(1)
+//    ^? v4: any
+//    ^? v5: { id?: number, name: string, … }
+```
+
+Nothing to change unless the old `any` was flowing somewhere that now disagrees with the real type. A builder declared outside the chain still describes its client itself – [reaching the client](/guide/custom-extensions#reaching-the-client) covers the shape that keeps the types.
+
 #### Only the Methods a Path Declares
 
 A path used to offer all eight HTTP verbs. Only the ones it declares are listed now:
