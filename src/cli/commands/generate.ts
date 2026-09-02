@@ -1,16 +1,21 @@
-import type { ArgsDef, CommandDef } from 'citty'
+import type { ArgsDef, CommandDef } from 'utilful/cli'
 import type { GenerationPlan } from '../plan.ts'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
-import { defineCommand } from 'citty'
+import { CliError, commonArgs, defineCommand, log } from 'utilful/cli'
 import { generateDTSFragments } from '../../openapi/generate.ts'
-import { CliError, commonArgs, withCleanErrors } from '../errors.ts'
-import * as log from '../log.ts'
 import { findDrift, fragmentDirectoryFor, planGeneration } from '../plan.ts'
 import { loadConfig } from '../utils.ts'
 
-const args: ArgsDef = {
+interface GenerateArgs extends ArgsDef {
+  outfile: { type: 'string', description: string, required: false }
+  outdir: { type: 'string', description: string, required: false }
+  check: { type: 'boolean', description: string }
+  root: { type: 'string', description: string, required: false }
+}
+
+const args: GenerateArgs = {
   ...commonArgs,
   outfile: {
     type: 'string',
@@ -25,7 +30,6 @@ const args: ArgsDef = {
   check: {
     type: 'boolean',
     description: 'Report whether the generated files are up to date, writing nothing',
-    default: false,
   },
   root: {
     type: 'string',
@@ -34,7 +38,7 @@ const args: ArgsDef = {
   },
 }
 
-const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
+const command: CommandDef<GenerateArgs> = defineCommand({
   meta: {
     name: 'generate',
     description: 'Generates TypeScript definitions from OpenAPI schemas',
@@ -94,7 +98,7 @@ const command: CommandDef<ArgsDef> = withCleanErrors(defineCommand({
     await applyPlan(plan)
     log.success(plan.summary)
   },
-}))
+})
 
 export default command
 

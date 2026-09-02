@@ -111,11 +111,10 @@
     "@types/json-schema": "^7.0.15",
     "ansis": "^4.3.1",
     "c12": "^4.0.0-beta.5",
-    "citty": "^0.2.2",
     "ofetch": "^1.5.1",
     "openapi-typescript-helpers": "0.1.0",
     "scule": "^1.3.0",
-    "utilful": "^3.1.0"
+    "utilful": "link:../utils"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.2.0",

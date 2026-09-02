@@ -43,7 +43,7 @@ describe('apiful CLI', () => {
       const { exitCode } = await runCli(['generate', `--root=${directory}`])
       const types = await fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8')
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
       expect(types).toContain(`declare module 'apiful/schema/petStore'`)
       expect(types).toContain('/pets/{id}')
     })
@@ -59,7 +59,7 @@ describe('apiful CLI', () => {
       const { exitCode } = await runCli(['generate', `--root=${directory}`])
       const types = await fsp.readFile(path.join(directory, 'apiful.d.ts'), 'utf-8')
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
       expect(types).toContain('/pets/{id}')
     })
 
@@ -83,7 +83,7 @@ describe('apiful CLI', () => {
 
       const { exitCode, stderr } = await runCli(['generate', `--root=${directory}`])
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
       expect(stderr).toContain('forgotten')
       expect(stderr).toContain('schema')
     })
@@ -125,7 +125,7 @@ describe('apiful CLI', () => {
       await runCli(['generate', `--root=${directory}`])
       const { exitCode } = await runCli(['generate', `--root=${directory}`, '--check'])
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
     })
 
     it('--check passes for type definitions written to an --outfile path', async () => {
@@ -137,7 +137,7 @@ describe('apiful CLI', () => {
       await runCli(['generate', `--root=${directory}`, '--outfile=types/api.d.ts'])
       const { exitCode } = await runCli(['generate', `--root=${directory}`, '--outfile=types/api.d.ts', '--check'])
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
     })
 
     it('creates the parent directory of an --outfile path that does not exist yet', async () => {
@@ -148,7 +148,7 @@ describe('apiful CLI', () => {
 
       const { exitCode } = await runCli(['generate', `--root=${directory}`, '--outfile=types/nested/api.d.ts'])
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
       await expect(fsp.readFile(path.join(directory, 'types/nested/api.d.ts'), 'utf-8'))
         .resolves
         .toContain(`declare module 'apiful/schema/petStore'`)
@@ -181,7 +181,7 @@ describe('apiful CLI', () => {
       const entry = await fsp.readFile(path.join(directory, 'generated/apiful.d.ts'), 'utf-8')
       const fragment = await fsp.readFile(path.join(directory, 'generated/schema/petStore.d.ts'), 'utf-8')
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
       expect(entry).toContain('/// <reference path="schema/petStore.d.ts" />')
       expect(fragment).toContain(`declare module 'apiful/schema/petStore'`)
     })
@@ -223,7 +223,7 @@ describe('apiful CLI', () => {
     it('--check passes for the committed apiful.d.ts the type tests resolve against', async () => {
       const { exitCode } = await runCli(['generate', `--root=${FIXTURES_DIR}`, '--check'])
 
-      expect(exitCode).toBeUndefined()
+      expect(exitCode).toBe(0)
     })
   })
 })
